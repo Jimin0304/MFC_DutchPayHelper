@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 
+class CDutchPayHelperDlg;
 // CAddSettlementDlg 대화 상자
 
 class CAddSettlementDlg : public CDialogEx
@@ -52,4 +53,6 @@ public:
 	afx_msg void OnClickedButtonFriendAdd();
 	afx_msg void OnClickedButtonEditFriends();
 	afx_msg void OnClickedButtonFriendDelete();
+	CDutchPayHelperDlg* m_pDlg;
+	void SetParentDlg(CDutchPayHelperDlg* dlg);
 };

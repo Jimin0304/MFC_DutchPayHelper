@@ -36,4 +36,12 @@ public:
 	afx_msg void OnMcnSelchangeMonthcalendar1(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnLbnSelchangeListDutchpay();
 	afx_msg void OnBnClickedButtonAdd();
+	afx_msg void OnSelchangeMonthcalendar(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnDatetimechangeDatetimepicker(NMHDR* pNMHDR, LRESULT* pResult);
+	COleDateTime m_timeDT;
+	COleDateTime m_timeMC;
+	CListCtrl m_listDutchPay;
+	CMonthCalCtrl m_calendarMC;
+	CDateTimeCtrl m_pickerDT;
+	afx_msg void OnClickedButtonPickDate();
 };

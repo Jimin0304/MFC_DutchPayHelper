@@ -53,6 +53,8 @@ END_MESSAGE_MAP()
 
 CDutchPayHelperDlg::CDutchPayHelperDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DUTCHPAYHELPER_DIALOG, pParent)
+	, m_timeDT(COleDateTime::GetCurrentTime())
+	, m_timeMC(COleDateTime::GetCurrentTime())
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -60,6 +62,11 @@ CDutchPayHelperDlg::CDutchPayHelperDlg(CWnd* pParent /*=nullptr*/)
 void CDutchPayHelperDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_DateTimeCtrl(pDX, IDC_DATETIMEPICKER, m_timeDT);
+	DDX_MonthCalCtrl(pDX, IDC_MONTHCALENDAR, m_timeMC);
+	DDX_Control(pDX, IDC_LIST_DUTCHPAY, m_listDutchPay);
+	DDX_Control(pDX, IDC_MONTHCALENDAR, m_calendarMC);
+	DDX_Control(pDX, IDC_DATETIMEPICKER, m_pickerDT);
 }
 
 BEGIN_MESSAGE_MAP(CDutchPayHelperDlg, CDialogEx)
@@ -70,6 +77,9 @@ BEGIN_MESSAGE_MAP(CDutchPayHelperDlg, CDialogEx)
 	ON_NOTIFY(MCN_SELCHANGE, IDC_MONTHCALENDAR1, &CDutchPayHelperDlg::OnMcnSelchangeMonthcalendar1)
 	ON_LBN_SELCHANGE(IDC_LIST_DUTCHPAY, &CDutchPayHelperDlg::OnLbnSelchangeListDutchpay)
 	ON_BN_CLICKED(IDC_BUTTON_ADD, &CDutchPayHelperDlg::OnBnClickedButtonAdd)
+	ON_NOTIFY(MCN_SELCHANGE, IDC_MONTHCALENDAR, &CDutchPayHelperDlg::OnSelchangeMonthcalendar)
+	ON_NOTIFY(DTN_DATETIMECHANGE, IDC_DATETIMEPICKER, &CDutchPayHelperDlg::OnDatetimechangeDatetimepicker)
+	ON_BN_CLICKED(IDC_BUTTON_PICK_DATE, &CDutchPayHelperDlg::OnClickedButtonPickDate)
 END_MESSAGE_MAP()
 
 
@@ -184,7 +194,38 @@ void CDutchPayHelperDlg::OnBnClickedButtonAdd()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	CAddSettlementDlg* pdlgAdd = new CAddSettlementDlg;
-	if (pdlgAdd->DoModal() == IDOK) {
+	pdlgAdd->SetParentDlg(this);
+	pdlgAdd->DoModal();
+}
 
-	}
+
+void CDutchPayHelperDlg::OnSelchangeMonthcalendar(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMSELCHANGE pSelChange = reinterpret_cast<LPNMSELCHANGE>(pNMHDR);
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+
+	*pResult = 0;
+}
+
+
+void CDutchPayHelperDlg::OnDatetimechangeDatetimepicker(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMDATETIMECHANGE pDTChange = reinterpret_cast<LPNMDATETIMECHANGE>(pNMHDR);
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	// Date Time Picker에서 선택된 날짜 가져오기
+	SYSTEMTIME selectedDate;
+	m_pickerDT.GetTime(&selectedDate);
+
+	// COleDateTime에 선택된 날짜 설정
+	m_timeDT = COleDateTime(selectedDate);
+
+	*pResult = 0;
+}
+
+
+void CDutchPayHelperDlg::OnClickedButtonPickDate()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CMonthCalCtrl* pCalendar = (CMonthCalCtrl*)GetDlgItem(IDC_MONTHCALENDAR);
+	pCalendar->SetCurSel(m_timeDT);
 }

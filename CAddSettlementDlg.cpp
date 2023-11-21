@@ -5,6 +5,7 @@
 #include "DutchPayHelper.h"
 #include "CAddSettlementDlg.h"
 #include "afxdialogex.h"
+#include "DutchPayHelperDlg.h"
 
 
 // CAddSettlementDlg 대화 상자
@@ -144,7 +145,6 @@ void CAddSettlementDlg::OnBnClickedButtonCalculateAdd()
 		m_listCalculate.SetItem(nCount, 1, LVIF_TEXT, strAmount, 0, 0, 0, 0);
 		m_listCalculate.SetItem(nCount, 2, LVIF_TEXT, m_strPlace, 0, 0, 0, 0);
 
-
 		m_nAmount = 0;
 		m_strPlace.Empty();
 
@@ -202,6 +202,13 @@ BOOL CAddSettlementDlg::OnInitDialog()
 	m_listCalculate.SetExtendedStyle(m_listCalculate.GetExtendedStyle() |
 		LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 	((CComboBox*)GetDlgItem(IDC_COMBO_UNIT))->SetCurSel(0);
+	
+	m_strDate = m_pDlg->m_timeDT.Format(L"%Y-%m-%d");
+	CFont g_editFont;
+	g_editFont.CreatePointFont(150, TEXT("굴림"));
+	GetDlgItem(IDC_EDIT_DATE)->SetFont(&g_editFont);
+
+	UpdateData(FALSE);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
@@ -222,12 +229,12 @@ void CAddSettlementDlg::OnLvnItemchangedListCalculate(NMHDR* pNMHDR, LRESULT* pR
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	m_nSelectedItem = pNMLV->iItem;
 
-	CString strFriends = m_listCalculate.GetItemText(m_nSelectedItem, 3);
+/*	CString strFriends = m_listCalculate.GetItemText(m_nSelectedItem, 3);
 
 	if (m_nSelectedItem >= 0 && strFriends.IsEmpty() == FALSE) {
 		UpdateFriendListBox(strFriends);
 	}
-
+*/
 	*pResult = 0;
 }
 
@@ -358,4 +365,10 @@ void CAddSettlementDlg::OnClickedButtonFriendDelete()
 	{
 		MessageBox(_T("삭제할 이름을 선택하지 않았습니다."), MB_OK);
 	}
+}
+
+void CAddSettlementDlg::SetParentDlg(CDutchPayHelperDlg* dlg)
+{
+	// TODO: 여기에 구현 코드 추가.
+	m_pDlg = dlg;
 }
