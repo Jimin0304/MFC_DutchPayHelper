@@ -60,6 +60,9 @@ BEGIN_MESSAGE_MAP(CAddSettlementDlg, CDialogEx)
 	ON_EN_CHANGE(IDC_EDIT_GENERAL_AFFAIRS, &CAddSettlementDlg::OnEnChangeEditGeneralAffairs)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_CALCULATE, &CAddSettlementDlg::OnLvnItemchangedListCalculate)
 	ON_BN_CLICKED(IDC_BUTTON_CALCULATE_DELETE, &CAddSettlementDlg::OnClickedButtonCalculateDelete)
+	ON_BN_CLICKED(IDC_BUTTON_FRIEND_ADD, &CAddSettlementDlg::OnClickedButtonFriendAdd)
+	ON_BN_CLICKED(IDC_BUTTON_EDIT_FRIENDS, &CAddSettlementDlg::OnClickedButtonEditFriends)
+	ON_BN_CLICKED(IDC_BUTTON_FRIEND_DELETE, &CAddSettlementDlg::OnClickedButtonFriendDelete)
 END_MESSAGE_MAP()
 
 
@@ -218,6 +221,13 @@ void CAddSettlementDlg::OnLvnItemchangedListCalculate(NMHDR* pNMHDR, LRESULT* pR
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	m_nSelectedItem = pNMLV->iItem;
+
+	CString strFriends = m_listCalculate.GetItemText(m_nSelectedItem, 3);
+
+	if (m_nSelectedItem >= 0 && strFriends.IsEmpty() == FALSE) {
+		UpdateFriendListBox(strFriends);
+	}
+
 	*pResult = 0;
 }
 
@@ -238,6 +248,114 @@ void CAddSettlementDlg::OnClickedButtonCalculateDelete()
 		UpdateData(FALSE);
 	}
 	else {
-		MessageBox(_T("아이템을 선택하지 않았습니다."), MB_OK);
+		MessageBox(_T("삭제할 내용을 선택하지 않았습니다."), MB_OK);
+	}
+}
+
+CString CAddSettlementDlg::ChangeListToString()
+{
+	// TODO: 여기에 구현 코드 추가.
+	CListBox* pListBox = (CListBox*)GetDlgItem(IDC_LIST_FRIEND); // IDC_YOUR_LIST_BOX는 여러분이 사용하는 실제 ID로 변경해야 합니다.
+
+	int itemCount = pListBox->GetCount();
+	CString resultString;
+
+	for (int i = 0; i < itemCount; ++i)
+	{
+		CString itemName;
+		pListBox->GetText(i, itemName);
+
+		if (!resultString.IsEmpty())
+		{
+			resultString += _T(", ");
+		}
+
+		resultString += itemName;
+	}
+
+	return (resultString);
+}
+
+void CAddSettlementDlg::UpdateFriendListBox(CString str)
+{
+	// TODO: 여기에 구현 코드 추가.
+	CListBox* pListBox = (CListBox*)GetDlgItem(IDC_LIST_FRIEND); // IDC_YOUR_LIST_BOX는 여러분이 사용하는 실제 ID로 변경해야 합니다.
+
+	pListBox->ResetContent(); // ListBox를 초기화합니다.
+
+	// Tokenize를 사용하여 각 이름을 추출합니다.
+	CString delimiter = _T(", ");
+	int start = 0;
+	int end = str.Find(delimiter);
+
+	while (end != -1)
+	{
+		CString name = str.Mid(start, end - start);
+		pListBox->AddString(name);
+		start = end + delimiter.GetLength();
+		end = str.Find(delimiter, start);
+	}
+
+	// 마지막 이름을 ListBox에 추가합니다.
+	CString last_name = str.Mid(start);
+	pListBox->AddString(last_name);
+
+	UpdateData(FALSE);
+}
+
+
+void CAddSettlementDlg::OnClickedButtonFriendAdd()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	UpdateData(TRUE);
+	if (m_strFriend.IsEmpty() == FALSE)
+	{
+		m_listFriend.AddString(m_strFriend);
+		m_strFriend.Empty();
+	}
+	else
+	{
+		MessageBox(_T("참여자 이름을 입력해주세요."));
+	}
+	UpdateData(FALSE);
+}
+
+void CAddSettlementDlg::OnClickedButtonEditFriends()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	UpdateData(TRUE);
+
+	int nCount;
+	CString strName;
+
+	if (m_nSelectedItem >= 0) {
+		nCount = m_listFriend.GetCount();
+
+		if (nCount) {
+			strName = ChangeListToString();
+			m_listCalculate.SetItem(m_nSelectedItem, 3, LVIF_TEXT, strName, 0, 0, 0, 0);
+		}
+		else {
+			MessageBox(_T("참여자는 1명 이상이어야 합니다."), MB_OK);
+		}
+	}
+	else {
+		MessageBox(_T("편집할 내용을 선택하지 않았습니다."), MB_OK);
+	}
+}
+
+
+void CAddSettlementDlg::OnClickedButtonFriendDelete()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	int nIndex = m_listFriend.GetCurSel(); // 현재 선택된 항목의 인덱스 가져오기
+
+	if (nIndex != LB_ERR) // LB_ERR는 선택된 항목이 없는 경우 반환되는 값
+	{
+		m_listFriend.DeleteString(nIndex);
+	}
+	else
+	{
+		MessageBox(_T("삭제할 이름을 선택하지 않았습니다."), MB_OK);
 	}
 }

@@ -47,4 +47,9 @@ public:
 	CListCtrl m_listCalculate;
 	afx_msg void OnClickedButtonCalculateDelete();
 	int m_nSelectedItem;
+	CString ChangeListToString();
+	void UpdateFriendListBox(CString str);
+	afx_msg void OnClickedButtonFriendAdd();
+	afx_msg void OnClickedButtonEditFriends();
+	afx_msg void OnClickedButtonFriendDelete();
 };
