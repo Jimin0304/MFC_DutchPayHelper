@@ -55,4 +55,7 @@ public:
 	afx_msg void OnClickedButtonFriendDelete();
 	CDutchPayHelperDlg* m_pDlg;
 	void SetParentDlg(CDutchPayHelperDlg* dlg);
+	int m_nCountCal;
+	CListCtrl* GetListCtrlPointer();
+	afx_msg void OnBnClickedOk();
 };

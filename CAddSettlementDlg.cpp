@@ -64,6 +64,7 @@ BEGIN_MESSAGE_MAP(CAddSettlementDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_FRIEND_ADD, &CAddSettlementDlg::OnClickedButtonFriendAdd)
 	ON_BN_CLICKED(IDC_BUTTON_EDIT_FRIENDS, &CAddSettlementDlg::OnClickedButtonEditFriends)
 	ON_BN_CLICKED(IDC_BUTTON_FRIEND_DELETE, &CAddSettlementDlg::OnClickedButtonFriendDelete)
+	ON_BN_CLICKED(IDOK, &CAddSettlementDlg::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 
@@ -147,6 +148,8 @@ void CAddSettlementDlg::OnBnClickedButtonCalculateAdd()
 
 		m_nAmount = 0;
 		m_strPlace.Empty();
+
+		m_nCountCal = nCount + 1;
 
 		UpdateData(FALSE);
 	}
@@ -257,6 +260,12 @@ void CAddSettlementDlg::OnClickedButtonCalculateDelete()
 	else {
 		MessageBox(_T("삭제할 내용을 선택하지 않았습니다."), MB_OK);
 	}
+	/*
+	for (int i = 0; i < m_listCalculate.GetItemCount(); i++) {
+		MessageBox(_T("Degree: ") + m_listCalculate.GetItemText(i, 0) + _T("\n"));
+		MessageBox(_T("Amount: ") + m_listCalculate.GetItemText(i, 1) + _T("\n"));
+		MessageBox(_T("Place: ") + m_listCalculate.GetItemText(i, 2) + _T("\n"));
+	}*/
 }
 
 CString CAddSettlementDlg::ChangeListToString()
@@ -371,4 +380,111 @@ void CAddSettlementDlg::SetParentDlg(CDutchPayHelperDlg* dlg)
 {
 	// TODO: 여기에 구현 코드 추가.
 	m_pDlg = dlg;
+}
+
+CListCtrl* CAddSettlementDlg::GetListCtrlPointer()
+{
+	// TODO: 여기에 구현 코드 추가.
+	return &m_listCalculate;;
+}
+
+
+void CAddSettlementDlg::OnBnClickedOk()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	if (m_nCountCal > 0)
+	{
+		CString settlement;
+
+		// settlement db 추가
+		settlement = _T("INSERT INTO settlement (settlement_date, settlement_name, general_affairs, account_num, memo, is_completed) VALUES (\'");
+		settlement += m_strDate + _T("\'");
+
+		if (m_strCalculateName == _T("")) { settlement += _T(", NULL"); }
+		else { settlement += _T(", \'") + m_strCalculateName + _T("\'"); }
+
+		if (m_strGeneralAffairs == _T("")) { settlement += _T(", NULL"); }
+		else { settlement += _T(", \'") + m_strGeneralAffairs + _T("\'"); }
+
+		if (m_strAccountNum == _T("")) { settlement += _T(", NULL"); }
+		else { settlement += _T(", \'") + m_strAccountNum + _T("\'"); }
+
+		if (m_strMemo == _T("")) { settlement += _T(", NULL"); }
+		else { settlement += _T(", \'") + m_strMemo + _T("\'"); }
+
+		settlement += _T(", 0)");
+
+		CStringA cstrA(settlement);
+		const char* cstr = cstrA;
+
+		if (mysql_query(&Connect, cstr) != 0) {
+			// 쿼리 실행이 실패함
+			// 에러 처리 코드 추가
+			CString error(mysql_error(&Connect));
+			// 에러 메시지를 출력하거나 로그에 기록
+			AfxMessageBox(_T("Error executing query: ") + settlement);
+			AfxMessageBox(_T("Error executing query: ") + error);
+		}
+
+		// content db 추가
+		CString tmp;
+
+		mysql_query(&Connect, "select MAX(seq) from settlement");
+		sql_result = mysql_store_result(&Connect);
+		if (sql_result == NULL)
+			AfxMessageBox(_T("조회된 settlement가 없습니다."));
+		sql_row = mysql_fetch_row(sql_result);
+		CString strIndex;
+		strIndex = sql_row[0];
+
+		long amount;
+		CString degree, strAmount, unit, place;
+
+		for (int i = 0; i < m_nCountCal; i++) {
+
+			degree = m_listCalculate.GetItemText(i, 0);
+			strAmount = m_listCalculate.GetItemText(i, 1);
+			amount = _ttoi(strAmount.Left(strAmount.GetLength() - 1));
+			unit = strAmount.Right(1);
+			place = m_listCalculate.GetItemText(i, 2);
+			if (place.IsEmpty()) {
+				place = _T("NULL");
+			}
+			else {
+				place = _T("'") + place + _T("'");
+			}
+
+			tmp.Format(_T("INSERT INTO content (settlement_seq, degree, amount, unit, place) VALUES (%d, '%s', %ld, '%s', %s)"),
+				_ttoi(strIndex), degree, amount, unit, place);
+
+			AfxMessageBox(_T("Error executing query: ") + tmp);
+
+			CStringA contentA(tmp);
+			const char* content = contentA;
+
+			if (mysql_query(&Connect, content) != 0) {
+				// 쿼리 실행이 실패함
+				// 에러 처리 코드 추가
+				CString error(mysql_error(&Connect));
+				// 에러 메시지를 출력하거나 로그에 기록
+				AfxMessageBox(_T("Error executing query: ") + error);
+
+				// 트랜잭션 롤백
+				mysql_rollback(&Connect);
+			}
+			else {
+				// 쿼리 실행이 성공함
+				// 트랜잭션 커밋
+				mysql_commit(&Connect);
+			}
+		}
+
+		mysql_free_result(sql_result);
+	}
+	else
+	{
+		MessageBox(_T("정산 내용이 없습니다."));
+	}
+
+	CDialogEx::OnOK();
 }

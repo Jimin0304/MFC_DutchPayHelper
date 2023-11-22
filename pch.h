@@ -9,5 +9,19 @@
 
 // 여기에 미리 컴파일하려는 헤더 추가
 #include "framework.h"
+#include <mysql.h>
+#include <WinSock2.h>
+
+#pragma comment (lib, "libmysql.lib")
+#pragma comment (lib, "ws2_32.lib")
+
+#define CON_IP "localhost"
+#define DB_USER "root"
+#define DB_PASS "qwer1234"
+#define DB_NAME "dutchpayhelper"
+
+extern MYSQL Connect;
+extern MYSQL_RES* sql_result;
+extern MYSQL_ROW sql_row;
 
 #endif //PCH_H

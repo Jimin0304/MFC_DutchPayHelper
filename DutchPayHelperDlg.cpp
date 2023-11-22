@@ -8,6 +8,11 @@
 #include "DutchPayHelperDlg.h"
 #include "afxdialogex.h"
 #include "CAddSettlementDlg.h"
+#include <atlstr.h>
+
+MYSQL Connect;
+MYSQL_RES* sql_result;
+MYSQL_ROW sql_row;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -115,6 +120,23 @@ BOOL CDutchPayHelperDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	// mysql 객체 초기화
+	mysql_init(&Connect);
+	// mysql 서버와 연결
+	if (!mysql_real_connect(&Connect, CON_IP, DB_USER, DB_PASS, DB_NAME, 3306, NULL, 0))
+	{
+		CString s = _T("");
+		s = mysql_error(&Connect);
+		MessageBox(s, MB_OK);
+	}
+	else
+	{
+		MessageBox(_T("DB 연결 성공"));
+	}
+
+	mysql_query(&Connect, "set session character_set_connection=euckr;");
+	mysql_query(&Connect, "set session character_set_results=euckr;");
+	mysql_query(&Connect, "set session character_set_client=euckr;");
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -195,7 +217,9 @@ void CDutchPayHelperDlg::OnBnClickedButtonAdd()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	CAddSettlementDlg* pdlgAdd = new CAddSettlementDlg;
 	pdlgAdd->SetParentDlg(this);
-	pdlgAdd->DoModal();
+	if (pdlgAdd->DoModal() == IDOK) {
+
+	}
 }
 
 
