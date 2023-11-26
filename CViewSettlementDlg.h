@@ -3,6 +3,8 @@
 
 // CViewSettlementDlg 대화 상자
 
+class CDutchPayHelperDlg;
+
 class CViewSettlementDlg : public CDialogEx
 {
 	DECLARE_DYNAMIC(CViewSettlementDlg)
@@ -21,8 +23,18 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
+	CDutchPayHelperDlg* m_pDlg;
+	void SetViewParentDlg(CDutchPayHelperDlg* dlg);
 	CString m_strDate;
 	virtual BOOL OnInitDialog();
-	//CDutchPayHelperDlg* m_pDlg;
-	//void SetViewParentDlg(CDutchPayHelperDlg* dlg);
+	int m_nIndex;
+	CString m_strCalcName;
+	CString m_strGeneralAffairs;
+	CString m_strMemo;
+	CString m_strAccountNum;
+	HTREEITEM m_hRoot;
+	HTREEITEM m_hSelectNode;
+	CTreeCtrl m_treeControl;
+	afx_msg void OnSelchangedTreeControl(NMHDR* pNMHDR, LRESULT* pResult);
+	BOOL m_bChecked;
 };

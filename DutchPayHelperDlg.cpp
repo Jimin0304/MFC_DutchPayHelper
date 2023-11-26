@@ -438,7 +438,7 @@ void CDutchPayHelperDlg::OnClickedButtonViewDetails()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	if (m_nSelectedPay >= 0) {
 		CViewSettlementDlg* pdlgView = new CViewSettlementDlg;
-		//pdlgView->SetViewParentDlg(this);
+		pdlgView->SetViewParentDlg(this);
 		pdlgView->DoModal();
 	}
 	else {
