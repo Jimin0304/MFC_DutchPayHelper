@@ -49,4 +49,5 @@ public:
 	afx_msg void OnClickedButtonDelete();
 	int m_nSelectedPay;
 	afx_msg void OnLvnItemchangedListDutchpay(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnClickedButtonViewDetails();
 };

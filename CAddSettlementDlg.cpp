@@ -249,6 +249,8 @@ void CAddSettlementDlg::OnClickedButtonCalculateDelete()
 			m_listCalculate.SetItemText(i, 0, strIndex);
 		}
 
+		m_nCountCal -= 1;
+
 		UpdateData(FALSE);
 	}
 	else {
@@ -425,6 +427,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 		sql_row = mysql_fetch_row(sql_result);
 		CString strIndex;
 		strIndex = sql_row[0];
+		mysql_free_result(sql_result);
 
 		long amount;
 		CString degree, strAmount, unit, place, nameList;
@@ -459,13 +462,11 @@ void CAddSettlementDlg::OnBnClickedOk()
 
 				// 트랜잭션 롤백
 				mysql_rollback(&Connect);
-				mysql_free_result(sql_result);
 			}
 			else {
 				// 쿼리 실행이 성공함
 				// 트랜잭션 커밋
 				mysql_commit(&Connect);
-				mysql_free_result(sql_result);
 				InsertParticipants(nameList);
 			}
 		}
@@ -487,8 +488,10 @@ void CAddSettlementDlg::InsertParticipants(CString nameList)
 	sql_result = mysql_store_result(&Connect);
 	if (sql_result == NULL)
 		AfxMessageBox(_T("조회된 content가 없습니다."));
+	sql_row = mysql_fetch_row(sql_result);
 	CString strIndex;
 	strIndex = sql_row[0];
+	mysql_free_result(sql_result); // 에러 발생
 
 	CString token;
 	int pos = 0;
@@ -524,7 +527,6 @@ void CAddSettlementDlg::InsertParticipants(CString nameList)
 				// 트랜잭션 커밋
 				mysql_commit(&Connect);
 			}
-			mysql_free_result(sql_result);
 		}
 
 		// 다음 토큰을 찾기 위해 위치 업데이트

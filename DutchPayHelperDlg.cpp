@@ -8,6 +8,7 @@
 #include "DutchPayHelperDlg.h"
 #include "afxdialogex.h"
 #include "CAddSettlementDlg.h"
+#include "CViewSettlementDlg.h"
 #include <atlstr.h>
 
 MYSQL Connect;
@@ -78,7 +79,6 @@ BEGIN_MESSAGE_MAP(CDutchPayHelperDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-//	ON_BN_CLICKED(IDC_BUTTON1, &CDutchPayHelperDlg::OnBnClickedButton1)
 	ON_NOTIFY(MCN_SELCHANGE, IDC_MONTHCALENDAR1, &CDutchPayHelperDlg::OnMcnSelchangeMonthcalendar1)
 	ON_LBN_SELCHANGE(IDC_LIST_DUTCHPAY, &CDutchPayHelperDlg::OnLbnSelchangeListDutchpay)
 	ON_BN_CLICKED(IDC_BUTTON_ADD, &CDutchPayHelperDlg::OnBnClickedButtonAdd)
@@ -87,6 +87,7 @@ BEGIN_MESSAGE_MAP(CDutchPayHelperDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_PICK_DATE, &CDutchPayHelperDlg::OnClickedButtonPickDate)
 	ON_BN_CLICKED(IDC_BUTTON_DELETE, &CDutchPayHelperDlg::OnClickedButtonDelete)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_DUTCHPAY, &CDutchPayHelperDlg::OnLvnItemchangedListDutchpay)
+	ON_BN_CLICKED(IDC_BUTTON_VIEW_DETAILS, &CDutchPayHelperDlg::OnClickedButtonViewDetails)
 END_MESSAGE_MAP()
 
 
@@ -403,4 +404,18 @@ void CDutchPayHelperDlg::OnLvnItemchangedListDutchpay(NMHDR* pNMHDR, LRESULT* pR
 	m_nSelectedPay = pNMLV->iItem;
 
 	*pResult = 0;
+}
+
+
+void CDutchPayHelperDlg::OnClickedButtonViewDetails()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	if (m_nSelectedPay >= 0) {
+		CViewSettlementDlg* pdlgView = new CViewSettlementDlg;
+		//pdlgView->SetViewParentDlg(this);
+		pdlgView->DoModal();
+	}
+	else {
+		MessageBox(_T("조회할 내용을 선택하지 않았습니다."), MB_OK);
+	}
 }
