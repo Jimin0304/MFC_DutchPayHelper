@@ -337,10 +337,11 @@ void CDutchPayHelperDlg::DisplaySelectedDateSettlements(CString selectedDate)
 				date = sql_row[1];
 				name = sql_row[2];
 				affairs = sql_row[3];
-				is_completed = sql_row[4];
+				is_completed = sql_row[6];
 
 				int completedValue = _ttoi(is_completed);
 				is_completed = (completedValue == 0) ? _T("X") : _T("O");
+
 
 				pListCtrl->InsertItem(row, index);
 				pListCtrl->SetItem(row, 1, LVIF_TEXT, date, 0, 0, 0, 0);
@@ -372,21 +373,46 @@ void CDutchPayHelperDlg::OnClickedButtonDelete()
 	if (m_nSelectedPay >= 0) {
 
 		CString index = m_listDutchPay.GetItemText(m_nSelectedPay, 0);
+		int nIndex = _ttoi(index);
 
+		// settlement 삭제
 		CString query;
-		query.Format(_T("DELETE FROM settlement WHERE seq = %d"), _ttoi(index));
-
-		CStringA cstrA(query);
-		const char* cstr = cstrA;
-
+		query.Format(_T("DELETE FROM settlement WHERE seq = %d"), nIndex);
+		CStringA settlementA(query);
+		const char* cstr = settlementA;
 		if (mysql_query(&Connect, cstr) != 0) {
-			// 쿼리 실행이 실패함
-			// 에러 처리 코드 추가
 			CString error(mysql_error(&Connect));
-			// 에러 메시지를 출력하거나 로그에 기록
-			AfxMessageBox(_T("Error executing query: ") + query);
 			AfxMessageBox(_T("Error executing query: ") + error);
 		}
+
+		// content 삭제
+		query.Format(_T("SELECT content_seq FROM content WHERE  settlement_seq = %d"), nIndex);
+		CStringA contentA(query);
+		cstr = contentA;
+		mysql_query(&Connect, cstr);
+		sql_result = mysql_store_result(&Connect);
+		sql_row = mysql_fetch_row(sql_result);
+		CString strIndex;
+		strIndex = sql_row[0];
+		mysql_free_result(sql_result);
+
+		query.Format(_T("DELETE FROM content WHERE settlement_seq = %d"), nIndex);
+		CStringA content(query);
+		cstr = content;
+		if (mysql_query(&Connect, cstr) != 0) {
+			CString error(mysql_error(&Connect));
+			AfxMessageBox(_T("Error executing query: ") + error);
+		}
+
+		
+		query.Format(_T("DELETE FROM participants WHERE content_seq = %d"), _ttoi(strIndex));
+		CStringA participantsA(query);
+		cstr = participantsA;
+		if (mysql_query(&Connect, cstr) != 0) {
+			CString error(mysql_error(&Connect));
+			AfxMessageBox(_T("Error executing query: ") + error);
+		}
+
 		m_listDutchPay.DeleteItem(m_nSelectedPay);
 
 		UpdateData(FALSE);

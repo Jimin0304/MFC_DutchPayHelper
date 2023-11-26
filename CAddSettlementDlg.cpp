@@ -491,7 +491,7 @@ void CAddSettlementDlg::InsertParticipants(CString nameList)
 	sql_row = mysql_fetch_row(sql_result);
 	CString strIndex;
 	strIndex = sql_row[0];
-	mysql_free_result(sql_result); // 에러 발생
+	mysql_free_result(sql_result);
 
 	CString token;
 	int pos = 0;
