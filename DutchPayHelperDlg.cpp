@@ -131,12 +131,12 @@ BOOL CDutchPayHelperDlg::OnInitDialog()
 	}
 	else
 	{
-		MessageBox(_T("DB 연결 성공"));
-	}
+		mysql_query(&Connect, "set session character_set_connection=euckr;");
+		mysql_query(&Connect, "set session character_set_results=euckr;");
+		mysql_query(&Connect, "set session character_set_client=euckr;");
 
-	mysql_query(&Connect, "set session character_set_connection=euckr;");
-	mysql_query(&Connect, "set session character_set_results=euckr;");
-	mysql_query(&Connect, "set session character_set_client=euckr;");
+		DisplayUnCompletedSettlements();
+	}
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -243,6 +243,10 @@ void CDutchPayHelperDlg::OnDatetimechangeDatetimepicker(NMHDR* pNMHDR, LRESULT* 
 	// COleDateTime에 선택된 날짜 설정
 	m_timeDT = COleDateTime(selectedDate);
 
+	// DutchPay List 출력
+	CString formattedDate = m_timeDT.Format(_T("%Y-%m-%d"));
+	DisplaySelectedDateSettlements(formattedDate);
+
 	*pResult = 0;
 }
 
@@ -252,4 +256,103 @@ void CDutchPayHelperDlg::OnClickedButtonPickDate()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	CMonthCalCtrl* pCalendar = (CMonthCalCtrl*)GetDlgItem(IDC_MONTHCALENDAR);
 	pCalendar->SetCurSel(m_timeDT);
+}
+
+
+void CDutchPayHelperDlg::DisplayUnCompletedSettlements()
+{
+	// TODO: 여기에 구현 코드 추가.
+	// IDC_LIST_DUTCHPAY에 연결된 CListCtrl 가져오기
+	CListCtrl* pListCtrl = (CListCtrl*)GetDlgItem(IDC_LIST_DUTCHPAY);
+
+	// CListCtrl 초기화
+	pListCtrl->DeleteAllItems();
+	pListCtrl->InsertColumn(0, _T("날짜"), LVCFMT_CENTER, 100);
+	pListCtrl->InsertColumn(1, _T("모임 이름"), LVCFMT_CENTER, 100);
+	pListCtrl->InsertColumn(2, _T("총무"), LVCFMT_CENTER, 70);
+	pListCtrl->InsertColumn(3, _T("완료"), LVCFMT_CENTER, 50);
+	pListCtrl->SetExtendedStyle(pListCtrl->GetExtendedStyle() |
+		LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
+	// settlement 테이블에서 is_completed가 false인 항목 검색
+	if (mysql_query(&Connect, "SELECT * FROM settlement WHERE is_completed = 0") == 0) {
+		sql_result = mysql_store_result(&Connect);
+		if (sql_result != NULL) {
+			// 결과를 CListCtrl에 추가
+			int row = 0;
+			while ((sql_row = mysql_fetch_row(sql_result)) != NULL) {
+				// 각 컬럼의 데이터를 가져와서 CListCtrl에 추가
+				CString date, name, affairs, is_completed;
+				date = sql_row[1];
+				name = sql_row[2];
+				affairs = sql_row[3];
+				is_completed = "X";
+
+				pListCtrl->InsertItem(row, date);
+				pListCtrl->SetItem(row, 1, LVIF_TEXT, name, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 2, LVIF_TEXT, affairs, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 3, LVIF_TEXT, is_completed, 0, 0, 0, 0);
+
+				row++;
+			}
+			mysql_free_result(sql_result);
+			
+			UpdateData(FALSE);
+		}
+	}
+}
+
+
+void CDutchPayHelperDlg::DisplaySelectedDateSettlements(CString selectedDate)
+{
+	// TODO: 여기에 구현 코드 추가.
+	// IDC_LIST_DUTCHPAY에 연결된 CListCtrl 가져오기
+	CListCtrl* pListCtrl = (CListCtrl*)GetDlgItem(IDC_LIST_DUTCHPAY);
+
+	// CListCtrl 초기화
+	pListCtrl->DeleteAllItems();
+
+	CString query;
+	query.Format(_T("SELECT * FROM settlement WHERE settlement_date = '%s'"), selectedDate);
+
+	CStringA cstrA(query);
+	const char* cstr = cstrA;
+
+	// settlement 테이블에서 settlement_date가 selectedDate인 항목 검색
+	if (mysql_query(&Connect, cstr) == 0) {
+		sql_result = mysql_store_result(&Connect);
+		if (sql_result != NULL) {
+			// 결과를 CListCtrl에 추가
+			int row = 0;
+			while ((sql_row = mysql_fetch_row(sql_result)) != NULL) {
+				// 각 컬럼의 데이터를 가져와서 CListCtrl에 추가
+				CString date, name, affairs, is_completed;
+				date = sql_row[1];
+				name = sql_row[2];
+				affairs = sql_row[3];
+				is_completed = sql_row[4];
+
+				int completedValue = _ttoi(is_completed);
+				is_completed = (completedValue == 0) ? _T("X") : _T("O");
+
+				pListCtrl->InsertItem(row, date);
+				pListCtrl->SetItem(row, 1, LVIF_TEXT, name, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 2, LVIF_TEXT, affairs, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 3, LVIF_TEXT, is_completed, 0, 0, 0, 0);
+
+				row++;
+			}
+			mysql_free_result(sql_result);
+
+			UpdateData(FALSE);
+		}
+	}
+	else {
+		// 쿼리 실행이 실패함
+			// 에러 처리 코드 추가
+		CString error(mysql_error(&Connect));
+		// 에러 메시지를 출력하거나 로그에 기록
+		AfxMessageBox(_T("Error executing query: ") + query);
+		AfxMessageBox(_T("Error executing query: ") + error);
+	}
 }

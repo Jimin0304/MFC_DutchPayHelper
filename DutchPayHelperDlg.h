@@ -44,4 +44,6 @@ public:
 	CMonthCalCtrl m_calendarMC;
 	CDateTimeCtrl m_pickerDT;
 	afx_msg void OnClickedButtonPickDate();
+	void DisplayUnCompletedSettlements();
+	void DisplaySelectedDateSettlements(CString selectedDate);
 };

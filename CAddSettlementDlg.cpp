@@ -260,12 +260,6 @@ void CAddSettlementDlg::OnClickedButtonCalculateDelete()
 	else {
 		MessageBox(_T("삭제할 내용을 선택하지 않았습니다."), MB_OK);
 	}
-	/*
-	for (int i = 0; i < m_listCalculate.GetItemCount(); i++) {
-		MessageBox(_T("Degree: ") + m_listCalculate.GetItemText(i, 0) + _T("\n"));
-		MessageBox(_T("Amount: ") + m_listCalculate.GetItemText(i, 1) + _T("\n"));
-		MessageBox(_T("Place: ") + m_listCalculate.GetItemText(i, 2) + _T("\n"));
-	}*/
 }
 
 CString CAddSettlementDlg::ChangeListToString()
