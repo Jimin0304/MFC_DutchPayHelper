@@ -392,6 +392,7 @@ CListCtrl* CAddSettlementDlg::GetListCtrlPointer()
 void CAddSettlementDlg::OnBnClickedOk()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	UpdateData(TRUE);
 	if (m_nCountCal > 0)
 	{
 		CString settlement;
@@ -400,16 +401,16 @@ void CAddSettlementDlg::OnBnClickedOk()
 		settlement = _T("INSERT INTO settlement (settlement_date, settlement_name, general_affairs, account_num, memo, is_completed) VALUES (\'");
 		settlement += m_strDate + _T("\'");
 
-		if (m_strCalculateName == _T("")) { settlement += _T(", NULL"); }
+		if (m_strCalculateName.IsEmpty()) { settlement += _T(", NULL"); }
 		else { settlement += _T(", \'") + m_strCalculateName + _T("\'"); }
 
-		if (m_strGeneralAffairs == _T("")) { settlement += _T(", NULL"); }
+		if (m_strGeneralAffairs.IsEmpty()) { settlement += _T(", NULL"); }
 		else { settlement += _T(", \'") + m_strGeneralAffairs + _T("\'"); }
 
-		if (m_strAccountNum == _T("")) { settlement += _T(", NULL"); }
+		if (m_strAccountNum.IsEmpty()) { settlement += _T(", NULL"); }
 		else { settlement += _T(", \'") + m_strAccountNum + _T("\'"); }
 
-		if (m_strMemo == _T("")) { settlement += _T(", NULL"); }
+		if (m_strMemo.IsEmpty()) { settlement += _T(", NULL"); }
 		else { settlement += _T(", \'") + m_strMemo + _T("\'"); }
 
 		settlement += _T(", 0)");
@@ -438,7 +439,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 		strIndex = sql_row[0];
 
 		long amount;
-		CString degree, strAmount, unit, place;
+		CString degree, strAmount, unit, place, nameList;
 
 		for (int i = 0; i < m_nCountCal; i++) {
 
@@ -453,13 +454,71 @@ void CAddSettlementDlg::OnBnClickedOk()
 			else {
 				place = _T("'") + place + _T("'");
 			}
+			nameList = m_listCalculate.GetItemText(i, 3);
 
 			tmp.Format(_T("INSERT INTO content (settlement_seq, degree, amount, unit, place) VALUES (%d, '%s', %ld, '%s', %s)"),
 				_ttoi(strIndex), degree, amount, unit, place);
 
-			AfxMessageBox(_T("Error executing query: ") + tmp);
-
 			CStringA contentA(tmp);
+			const char* content = contentA;
+
+			if (mysql_query(&Connect, content) != 0) {
+				// 쿼리 실행이 실패함
+				// 에러 처리 코드 추가
+				CString error(mysql_error(&Connect));
+				// 에러 메시지를 출력하거나 로그에 기록
+				AfxMessageBox(_T("Error executing query: ") + error);
+
+				// 트랜잭션 롤백
+				mysql_rollback(&Connect);
+				mysql_free_result(sql_result);
+			}
+			else {
+				// 쿼리 실행이 성공함
+				// 트랜잭션 커밋
+				mysql_commit(&Connect);
+				mysql_free_result(sql_result);
+				InsertParticipants(nameList);
+			}
+		}
+	}
+	else
+	{
+		MessageBox(_T("정산 내용이 없습니다."));
+	}
+
+	CDialogEx::OnOK();
+}
+
+
+void CAddSettlementDlg::InsertParticipants(CString nameList)
+{
+	// TODO: 여기에 구현 코드 추가.
+	// participants db
+	mysql_query(&Connect, "select MAX(content_seq) from content");
+	sql_result = mysql_store_result(&Connect);
+	if (sql_result == NULL)
+		AfxMessageBox(_T("조회된 content가 없습니다."));
+	CString strIndex;
+	strIndex = sql_row[0];
+
+	CString token;
+	int pos = 0;
+
+	while (AfxExtractSubString(token, nameList, pos, ','))
+	{
+		// 좌우 공백 제거
+		token.TrimLeft();
+		token.TrimRight();
+
+		// 결과 DB에 추가
+		if (!token.IsEmpty()) {
+			CString participant;
+
+			participant.Format(_T("INSERT INTO participants (content_seq, name, paid) VALUES (%d, '%s', %d)"),
+				_ttoi(strIndex), token, 0);
+
+			CStringA contentA(participant);
 			const char* content = contentA;
 
 			if (mysql_query(&Connect, content) != 0) {
@@ -477,14 +536,10 @@ void CAddSettlementDlg::OnBnClickedOk()
 				// 트랜잭션 커밋
 				mysql_commit(&Connect);
 			}
+			mysql_free_result(sql_result);
 		}
 
-		mysql_free_result(sql_result);
+		// 다음 토큰을 찾기 위해 위치 업데이트
+		pos++;
 	}
-	else
-	{
-		MessageBox(_T("정산 내용이 없습니다."));
-	}
-
-	CDialogEx::OnOK();
 }
