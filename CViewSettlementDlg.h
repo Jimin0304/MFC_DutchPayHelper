@@ -37,4 +37,6 @@ public:
 	CTreeCtrl m_treeControl;
 	afx_msg void OnSelchangedTreeControl(NMHDR* pNMHDR, LRESULT* pResult);
 	BOOL m_bChecked;
+	CComboBox m_cbUnit;
+	CComboBox m_cbBalanceUnit;
 };

@@ -38,6 +38,9 @@ void CViewSettlementDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_ACCOUNT_NUMBER, m_strAccountNum);
 	DDX_Control(pDX, IDC_TREE_CONTROL, m_treeControl);
 	DDX_Check(pDX, IDC_CHECK_FINISH, m_bChecked);
+	//  DDX_CBString(pDX, IDC_COMBO_BALANCE_UNIT, m_strUnit);
+	DDX_Control(pDX, IDC_COMBO_UNIT, m_cbUnit);
+	DDX_Control(pDX, IDC_COMBO_BALANCE_UNIT, m_cbBalanceUnit);
 }
 
 
@@ -83,6 +86,8 @@ BOOL CViewSettlementDlg::OnInitDialog()
 	m_strGeneralAffairs = sql_row[3];
 	m_strAccountNum = sql_row[4];
 	m_strMemo = sql_row[5];
+	m_cbUnit.SetCurSel(0);
+	m_cbBalanceUnit.SetCurSel(0);
 	
 	// 트리 최상위 노드
 	CString hRootNode = m_strDate;
