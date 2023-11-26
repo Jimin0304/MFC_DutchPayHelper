@@ -85,6 +85,8 @@ BEGIN_MESSAGE_MAP(CDutchPayHelperDlg, CDialogEx)
 	ON_NOTIFY(MCN_SELCHANGE, IDC_MONTHCALENDAR, &CDutchPayHelperDlg::OnSelchangeMonthcalendar)
 	ON_NOTIFY(DTN_DATETIMECHANGE, IDC_DATETIMEPICKER, &CDutchPayHelperDlg::OnDatetimechangeDatetimepicker)
 	ON_BN_CLICKED(IDC_BUTTON_PICK_DATE, &CDutchPayHelperDlg::OnClickedButtonPickDate)
+	ON_BN_CLICKED(IDC_BUTTON_DELETE, &CDutchPayHelperDlg::OnClickedButtonDelete)
+	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_DUTCHPAY, &CDutchPayHelperDlg::OnLvnItemchangedListDutchpay)
 END_MESSAGE_MAP()
 
 
@@ -267,10 +269,11 @@ void CDutchPayHelperDlg::DisplayUnCompletedSettlements()
 
 	// CListCtrl 초기화
 	pListCtrl->DeleteAllItems();
-	pListCtrl->InsertColumn(0, _T("날짜"), LVCFMT_CENTER, 100);
-	pListCtrl->InsertColumn(1, _T("모임 이름"), LVCFMT_CENTER, 100);
-	pListCtrl->InsertColumn(2, _T("총무"), LVCFMT_CENTER, 70);
-	pListCtrl->InsertColumn(3, _T("완료"), LVCFMT_CENTER, 50);
+	pListCtrl->InsertColumn(0, _T("번호"), LVCFMT_CENTER, 40);
+	pListCtrl->InsertColumn(1, _T("날짜"), LVCFMT_CENTER, 95);
+	pListCtrl->InsertColumn(2, _T("모임 이름"), LVCFMT_CENTER, 82);
+	pListCtrl->InsertColumn(3, _T("총무"), LVCFMT_CENTER, 70);
+	pListCtrl->InsertColumn(4, _T("완료"), LVCFMT_CENTER, 50);
 	pListCtrl->SetExtendedStyle(pListCtrl->GetExtendedStyle() |
 		LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
@@ -282,16 +285,18 @@ void CDutchPayHelperDlg::DisplayUnCompletedSettlements()
 			int row = 0;
 			while ((sql_row = mysql_fetch_row(sql_result)) != NULL) {
 				// 각 컬럼의 데이터를 가져와서 CListCtrl에 추가
-				CString date, name, affairs, is_completed;
+				CString index, date, name, affairs, is_completed;
+				index = sql_row[0];
 				date = sql_row[1];
 				name = sql_row[2];
 				affairs = sql_row[3];
 				is_completed = "X";
 
-				pListCtrl->InsertItem(row, date);
-				pListCtrl->SetItem(row, 1, LVIF_TEXT, name, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 2, LVIF_TEXT, affairs, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 3, LVIF_TEXT, is_completed, 0, 0, 0, 0);
+				pListCtrl->InsertItem(row, index);
+				pListCtrl->SetItem(row, 1, LVIF_TEXT, date, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 2, LVIF_TEXT, name, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 3, LVIF_TEXT, affairs, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 4, LVIF_TEXT, is_completed, 0, 0, 0, 0);
 
 				row++;
 			}
@@ -326,7 +331,8 @@ void CDutchPayHelperDlg::DisplaySelectedDateSettlements(CString selectedDate)
 			int row = 0;
 			while ((sql_row = mysql_fetch_row(sql_result)) != NULL) {
 				// 각 컬럼의 데이터를 가져와서 CListCtrl에 추가
-				CString date, name, affairs, is_completed;
+				CString index, date, name, affairs, is_completed;
+				index = sql_row[0];
 				date = sql_row[1];
 				name = sql_row[2];
 				affairs = sql_row[3];
@@ -335,10 +341,11 @@ void CDutchPayHelperDlg::DisplaySelectedDateSettlements(CString selectedDate)
 				int completedValue = _ttoi(is_completed);
 				is_completed = (completedValue == 0) ? _T("X") : _T("O");
 
-				pListCtrl->InsertItem(row, date);
-				pListCtrl->SetItem(row, 1, LVIF_TEXT, name, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 2, LVIF_TEXT, affairs, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 3, LVIF_TEXT, is_completed, 0, 0, 0, 0);
+				pListCtrl->InsertItem(row, index);
+				pListCtrl->SetItem(row, 1, LVIF_TEXT, date, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 2, LVIF_TEXT, name, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 3, LVIF_TEXT, affairs, 0, 0, 0, 0);
+				pListCtrl->SetItem(row, 4, LVIF_TEXT, is_completed, 0, 0, 0, 0);
 
 				row++;
 			}
@@ -355,4 +362,45 @@ void CDutchPayHelperDlg::DisplaySelectedDateSettlements(CString selectedDate)
 		AfxMessageBox(_T("Error executing query: ") + query);
 		AfxMessageBox(_T("Error executing query: ") + error);
 	}
+}
+
+
+void CDutchPayHelperDlg::OnClickedButtonDelete()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	if (m_nSelectedPay >= 0) {
+
+		CString index = m_listDutchPay.GetItemText(m_nSelectedPay, 0);
+
+		CString query;
+		query.Format(_T("DELETE FROM settlement WHERE seq = %d"), _ttoi(index));
+
+		CStringA cstrA(query);
+		const char* cstr = cstrA;
+
+		if (mysql_query(&Connect, cstr) != 0) {
+			// 쿼리 실행이 실패함
+			// 에러 처리 코드 추가
+			CString error(mysql_error(&Connect));
+			// 에러 메시지를 출력하거나 로그에 기록
+			AfxMessageBox(_T("Error executing query: ") + query);
+			AfxMessageBox(_T("Error executing query: ") + error);
+		}
+		m_listDutchPay.DeleteItem(m_nSelectedPay);
+
+		UpdateData(FALSE);
+	}
+	else {
+		MessageBox(_T("삭제할 내용을 선택하지 않았습니다."), MB_OK);
+	}
+}
+
+
+void CDutchPayHelperDlg::OnLvnItemchangedListDutchpay(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	m_nSelectedPay = pNMLV->iItem;
+
+	*pResult = 0;
 }

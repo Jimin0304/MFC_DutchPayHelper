@@ -232,12 +232,6 @@ void CAddSettlementDlg::OnLvnItemchangedListCalculate(NMHDR* pNMHDR, LRESULT* pR
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	m_nSelectedItem = pNMLV->iItem;
 
-/*	CString strFriends = m_listCalculate.GetItemText(m_nSelectedItem, 3);
-
-	if (m_nSelectedItem >= 0 && strFriends.IsEmpty() == FALSE) {
-		UpdateFriendListBox(strFriends);
-	}
-*/
 	*pResult = 0;
 }
 

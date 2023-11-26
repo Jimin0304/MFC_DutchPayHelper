@@ -46,4 +46,7 @@ public:
 	afx_msg void OnClickedButtonPickDate();
 	void DisplayUnCompletedSettlements();
 	void DisplaySelectedDateSettlements(CString selectedDate);
+	afx_msg void OnClickedButtonDelete();
+	int m_nSelectedPay;
+	afx_msg void OnLvnItemchangedListDutchpay(NMHDR* pNMHDR, LRESULT* pResult);
 };
