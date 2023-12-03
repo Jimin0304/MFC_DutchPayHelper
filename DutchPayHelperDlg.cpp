@@ -221,7 +221,6 @@ void CDutchPayHelperDlg::OnBnClickedButtonAdd()
 	CAddSettlementDlg* pdlgAdd = new CAddSettlementDlg;
 	pdlgAdd->SetParentDlg(this);
 	if (pdlgAdd->DoModal() == IDOK) {
-
 	}
 }
 

@@ -58,5 +58,5 @@ public:
 	int m_nCountCal;
 	CListCtrl* GetListCtrlPointer();
 	afx_msg void OnBnClickedOk();
-	void InsertParticipants(CString nameList);
+	void InsertParticipants(int amount, CString nameList);
 };

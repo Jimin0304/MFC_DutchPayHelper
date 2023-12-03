@@ -39,4 +39,9 @@ public:
 	BOOL m_bChecked;
 	CComboBox m_cbUnit;
 	CComboBox m_cbBalanceUnit;
+	int m_nUnsettledNum;
+	int m_nBalance;
+	CString m_strDegree;
+	CString m_strName;
+	CString m_strAmount;
 };

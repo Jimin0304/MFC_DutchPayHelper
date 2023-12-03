@@ -36,6 +36,7 @@
 #define IDC_TREE1                       1023
 #define IDC_TREE_CONTROL                1023
 #define IDC_EDIT_BALANCE2               1024
+#define IDC_EDIT_UNSETTLED_NUM          1024
 #define IDC_CHECK_FINISH                1025
 #define IDC_EDIT_DEGREE                 1026
 #define IDC_EDIT_UNIT                   1026

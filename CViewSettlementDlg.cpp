@@ -20,6 +20,11 @@ CViewSettlementDlg::CViewSettlementDlg(CWnd* pParent /*=nullptr*/)
 	, m_strMemo(_T(""))
 	, m_strAccountNum(_T(""))
 	, m_bChecked(FALSE)
+	, m_nUnsettledNum(0)
+	, m_nBalance(0)
+	, m_strDegree(_T(""))
+	, m_strName(_T(""))
+	, m_strAmount(_T(""))
 {
 
 }
@@ -41,6 +46,12 @@ void CViewSettlementDlg::DoDataExchange(CDataExchange* pDX)
 	//  DDX_CBString(pDX, IDC_COMBO_BALANCE_UNIT, m_strUnit);
 	DDX_Control(pDX, IDC_COMBO_UNIT, m_cbUnit);
 	DDX_Control(pDX, IDC_COMBO_BALANCE_UNIT, m_cbBalanceUnit);
+	//  DDX_Text(pDX, IDC_EDIT_BALANCE, m_strBalance);
+	DDX_Text(pDX, IDC_EDIT_UNSETTLED_NUM, m_nUnsettledNum);
+	DDX_Text(pDX, IDC_EDIT_BALANCE, m_nBalance);
+	DDX_Text(pDX, IDC_EDIT_DEGREE, m_strDegree);
+	DDX_Text(pDX, IDC_EDIT_NAME, m_strName);
+	DDX_Text(pDX, IDC_EDIT_AMOUNT, m_strAmount);
 }
 
 
@@ -115,37 +126,57 @@ BOOL CViewSettlementDlg::OnInitDialog()
 	mysql_query(&Connect, cstr);
 	sql_result = mysql_store_result(&Connect);
 	int indexCount = 0;
-	HTREEITEM hChild[100];
-	CString listContentSeq[100];
+	HTREEITEM hChild[100][100];
+	CString listContentSeq[100][2];
 	while ((sql_row = mysql_fetch_row(sql_result)) != NULL) {
 		CString degree, place, node;
 		degree = sql_row[2];
 		place = sql_row[5];
-		listContentSeq[indexCount] = sql_row[0];
-
+		listContentSeq[indexCount][0] = sql_row[0];	// content_seq
+		listContentSeq[indexCount][1] = sql_row[4];	// unit
+		
 		node = degree;
 		if (!place.IsEmpty()) {
 			node += _T(" (") + place + _T(")");
 		}
-		hChild[indexCount++] = m_treeControl.InsertItem(node, m_hRoot);
+		hChild[indexCount++][0] = m_treeControl.InsertItem(node, m_hRoot);
 	}
 	mysql_free_result(sql_result);
 
 	// 참여자 트리
+	int unpaidTotalCount = 0;	// 미정산 인원
+	int unpaidAmount = 0;		// 미정산 금액
 	for (int i = 0; i < indexCount; i++) {
-		query.Format(_T("SELECT * FROM participants WHERE content_seq = %d ORDER BY name ASC"), _ttoi(listContentSeq[i]));
+		query.Format(_T("SELECT * FROM participants WHERE content_seq = %d ORDER BY name ASC"), _ttoi(listContentSeq[i][0]));
 		CStringA participantA(query);
 		cstr = participantA;
 		mysql_query(&Connect, cstr);
 		sql_result = mysql_store_result(&Connect);
+		int j = 1;
 		while ((sql_row = mysql_fetch_row(sql_result)) != NULL) {
-			CString name;
+			CString name, moneyToPay, item;
 			name = sql_row[2];
-			m_treeControl.InsertItem(name, hChild[i]);
-			m_treeControl.Expand(hChild[i], TVE_EXPAND);
+			moneyToPay = sql_row[4];
+			item = name + _T(", ") + moneyToPay + listContentSeq[i][1];
+			hChild[i][j] = m_treeControl.InsertItem(item, hChild[i][0]);
+			m_treeControl.Expand(hChild[i][j], TVE_EXPAND);
+
+			CString isPaid;
+			isPaid = sql_row[3];
+			if (_ttoi(isPaid) == 1) {	// 정산일 때 체크 표시
+				m_treeControl.SetCheck(hChild[i][j], true);
+				m_bChecked = TRUE;
+			}
+			else {		// 미정산 상태일 때 정산 현황 정보
+				unpaidTotalCount++;		
+				unpaidAmount += _ttoi(moneyToPay);
+			}
+			j++;
 		}
 		mysql_free_result(sql_result);
 	}
+	m_nBalance = unpaidAmount;
+	m_nUnsettledNum = unpaidTotalCount;
 
 	UpdateData(FALSE);
 	
@@ -159,5 +190,97 @@ void CViewSettlementDlg::OnSelchangedTreeControl(NMHDR* pNMHDR, LRESULT* pResult
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	m_hSelectNode = pNMTreeView->itemNew.hItem;
+
+	HTREEITEM hParentItem = m_treeControl.GetParentItem(m_hSelectNode);
+	if (hParentItem == m_hRoot)	{	// 차수 노드를 선택했을 때
+		// 차수
+		CString degree = m_treeControl.GetItemText(m_hSelectNode);
+		AfxExtractSubString(m_strDegree, degree, 0, _T('차'));
+		m_strDegree += _T("차");
+		
+		// 참여자 이름
+		// 첫 번째 자식 항목(노드) 가져오기
+		HTREEITEM hChildItem = m_treeControl.GetChildItem(m_hSelectNode);
+		CString nameList;
+
+		// 자식 항목이 유효한지 확인 후 사용
+		while (hChildItem != NULL) {
+			// 자식 항목의 데이터 처리
+			CString childText;
+			AfxExtractSubString(childText, m_treeControl.GetItemText(hChildItem), 0, _T(','));
+			nameList += childText + _T(", ");
+
+			// 다음 자식 항목(노드) 가져오기
+			hChildItem = m_treeControl.GetNextItem(hChildItem, TVGN_NEXT);
+		}
+		int len = nameList.GetLength() - 2;
+		m_strName = nameList.Left(len);
+
+		// 금액
+		CString query;
+		query.Format(_T("SELECT * FROM content WHERE settlement_seq = %d AND degree = '%s'"), m_nIndex, m_strDegree);
+		CStringA strA(query);
+		const char* cstr = strA;
+		mysql_query(&Connect, cstr);
+		sql_result = mysql_store_result(&Connect);
+		sql_row = mysql_fetch_row(sql_result);
+		if (sql_row == NULL)
+			AfxMessageBox(_T("조회된 sql_row가 없습니다."));
+		m_strAmount = sql_row[3];
+
+		// 금액 단위
+		CString unit;
+		unit = sql_row[4];
+		mysql_free_result(sql_result);
+
+		if (unit == "원")
+			m_cbUnit.SetCurSel(0);
+		else if (unit == "달러")
+			m_cbUnit.SetCurSel(1);
+		else if (unit == "엔")
+			m_cbUnit.SetCurSel(2);
+	}
+	else {	// 참여자 노드를 선택했을 때
+		CString text = m_treeControl.GetItemText(m_hSelectNode);
+		int retval = 0;
+		retval = text.Find(',');
+		m_strName = text.Left(retval);
+		CString amount = text.Mid(retval + 2);
+		CString unit;
+		if (amount.Right(1) == _T("러")) {
+			amount = amount.Left(amount.GetLength() - 2);
+			unit = _T("달러");
+		}
+		else {
+			amount = amount.Left(amount.GetLength() - 1);
+			unit = amount.Right(1);
+		}
+
+		CString degreeList = m_treeControl.GetItemText(hParentItem);
+		AfxExtractSubString(m_strDegree, degreeList, 0, _T('차'));
+
+		while (hParentItem != NULL) {
+			// 차수 노드 데이터 처리
+			CString childText;
+			AfxExtractSubString(childText, m_treeControl.GetItemText(hParentItem), 0, _T('차'));
+			degreeList += _T(", ") + childText;
+
+			CString query;
+			query.Format(_T("SELECT * FROM content WHERE settlement_seq = %d AND degree = '%s'"), m_nIndex, m_strDegree);
+			CStringA strA(query);
+			const char* cstr = strA;
+			mysql_query(&Connect, cstr);
+			sql_result = mysql_store_result(&Connect);
+			sql_row = mysql_fetch_row(sql_result);
+			if (sql_row == NULL)
+				AfxMessageBox(_T("조회된 sql_row가 없습니다."));
+			m_strAmount = sql_row[3];
+
+			// 다음 차수 항목(노드) 가져오기
+			hParentItem = m_treeControl.GetNextItem(hParentItem, TVGN_NEXT);
+		}
+	}
+
+	UpdateData(FALSE);
 	*pResult = 0;
 }

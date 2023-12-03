@@ -467,7 +467,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 				// 쿼리 실행이 성공함
 				// 트랜잭션 커밋
 				mysql_commit(&Connect);
-				InsertParticipants(nameList);
+				InsertParticipants(amount, nameList);
 			}
 		}
 	}
@@ -480,7 +480,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 }
 
 
-void CAddSettlementDlg::InsertParticipants(CString nameList)
+void CAddSettlementDlg::InsertParticipants(int amount, CString nameList)
 {
 	// TODO: 여기에 구현 코드 추가.
 	// participants db
@@ -501,6 +501,8 @@ void CAddSettlementDlg::InsertParticipants(CString nameList)
 		// 좌우 공백 제거
 		token.TrimLeft();
 		token.TrimRight();
+
+		int cnt = 0;
 
 		// 결과 DB에 추가
 		if (!token.IsEmpty()) {
@@ -531,5 +533,30 @@ void CAddSettlementDlg::InsertParticipants(CString nameList)
 
 		// 다음 토큰을 찾기 위해 위치 업데이트
 		pos++;
+	}
+
+	// 각 차수 당 내야할 돈 계산하여 db에 저장
+	int pay = amount / pos;
+	CString moneyToPay;
+
+	moneyToPay.Format(_T("UPDATE participants SET money_to_pay = %d WHERE content_seq = %d"), pay, _ttoi(strIndex));
+
+	CStringA moneyToPayA(moneyToPay);
+	const char* payA = moneyToPayA;
+
+	if (mysql_query(&Connect, payA) != 0) {
+		// 쿼리 실행이 실패함
+		// 에러 처리 코드 추가
+		CString error(mysql_error(&Connect));
+		// 에러 메시지를 출력하거나 로그에 기록
+		AfxMessageBox(_T("Error executing query: ") + error);
+
+		// 트랜잭션 롤백
+		mysql_rollback(&Connect);
+	}
+	else {
+		// 쿼리 실행이 성공함
+		// 트랜잭션 커밋
+		mysql_commit(&Connect);
 	}
 }
