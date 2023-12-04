@@ -45,6 +45,7 @@ void CAddSettlementDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_GENERAL_AFFAIRS, m_strGeneralAffairs);
 	DDX_Text(pDX, IDC_EDIT_MEMO, m_strMemo);
 	DDX_Control(pDX, IDC_LIST_CALCULATE, m_listCalculate);
+	DDX_Control(pDX, IDC_COMBO_SELECTED_UNIT, m_cbSelectedUnit);
 }
 
 
@@ -205,11 +206,13 @@ BOOL CAddSettlementDlg::OnInitDialog()
 	m_listCalculate.SetExtendedStyle(m_listCalculate.GetExtendedStyle() |
 		LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 	((CComboBox*)GetDlgItem(IDC_COMBO_UNIT))->SetCurSel(0);
+	((CComboBox*)GetDlgItem(IDC_COMBO_SELECTED_UNIT))->SetCurSel(0);
 	
 	m_strDate = m_pDlg->m_timeDT.Format(L"%Y-%m-%d");
 	CFont g_editFont;
 	g_editFont.CreatePointFont(150, TEXT("굴림"));
 	GetDlgItem(IDC_EDIT_DATE)->SetFont(&g_editFont);
+
 
 	UpdateData(FALSE);
 
@@ -261,7 +264,7 @@ void CAddSettlementDlg::OnClickedButtonCalculateDelete()
 CString CAddSettlementDlg::ChangeListToString()
 {
 	// TODO: 여기에 구현 코드 추가.
-	CListBox* pListBox = (CListBox*)GetDlgItem(IDC_LIST_FRIEND); // IDC_YOUR_LIST_BOX는 여러분이 사용하는 실제 ID로 변경해야 합니다.
+	CListBox* pListBox = (CListBox*)GetDlgItem(IDC_LIST_FRIEND);
 
 	int itemCount = pListBox->GetCount();
 	CString resultString;
@@ -388,7 +391,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 		CString settlement;
 
 		// settlement db 추가
-		settlement = _T("INSERT INTO settlement (settlement_date, settlement_name, general_affairs, account_num, memo, is_completed) VALUES (\'");
+		settlement = _T("INSERT INTO settlement (settlement_date, settlement_name, general_affairs, account_num, memo, is_completed, amount_unit) VALUES (\'");
 		settlement += m_strDate + _T("\'");
 
 		if (m_strCalculateName.IsEmpty()) { settlement += _T(", NULL"); }
@@ -403,7 +406,14 @@ void CAddSettlementDlg::OnBnClickedOk()
 		if (m_strMemo.IsEmpty()) { settlement += _T(", NULL"); }
 		else { settlement += _T(", \'") + m_strMemo + _T("\'"); }
 
-		settlement += _T(", 0)");
+		settlement += _T(", 0, ");
+
+		if (m_cbSelectedUnit.GetCurSel() == 0)
+			settlement += _T("'원')");
+		else if (m_cbSelectedUnit.GetCurSel() == 1)
+			settlement += _T("'달러')");
+		else if (m_cbSelectedUnit.GetCurSel() == 2)
+			settlement += _T("'엔')");
 
 		CStringA cstrA(settlement);
 		const char* cstr = cstrA;
@@ -431,7 +441,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 
 		int unitIndex;
 		long amount;
-		CString degree, strAmount, unit, place, nameList;
+		CString degree, strAmount, place, nameList, lastUnit;
 
 		for (int i = 0; i < m_nCountCal; i++) {
 
@@ -442,7 +452,6 @@ void CAddSettlementDlg::OnBnClickedOk()
 			else
 				unitIndex = 1;
 			amount = _ttoi(strAmount.Left(strAmount.GetLength() - unitIndex));
-			unit = strAmount.Right(unitIndex);
 			place = m_listCalculate.GetItemText(i, 2);
 			if (place.IsEmpty()) {
 				place = _T("NULL");
@@ -452,8 +461,8 @@ void CAddSettlementDlg::OnBnClickedOk()
 			}
 			nameList = m_listCalculate.GetItemText(i, 3);
 
-			tmp.Format(_T("INSERT INTO content (settlement_seq, degree, amount, unit, place) VALUES (%d, '%s', %ld, '%s', %s)"),
-				_ttoi(strIndex), degree, amount, unit, place);
+			tmp.Format(_T("INSERT INTO content (settlement_seq, degree, amount, place) VALUES (%d, '%s', %ld, %s)"),
+				_ttoi(strIndex), degree, amount, place);
 
 			CStringA contentA(tmp);
 			const char* content = contentA;

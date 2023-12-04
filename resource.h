@@ -33,6 +33,8 @@
 #define IDC_EDIT_BALANCE                1019
 #define IDC_BUTTON_CALCULATE_DELETE     1021
 #define IDC_EDIT_DETAIL_BALANCE         1021
+#define IDC_COMBO_UNIT2                 1022
+#define IDC_COMBO_SELECTED_UNIT         1022
 #define IDC_TREE1                       1023
 #define IDC_TREE_CONTROL                1023
 #define IDC_EDIT_BALANCE2               1024

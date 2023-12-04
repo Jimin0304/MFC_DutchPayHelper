@@ -99,6 +99,7 @@ BOOL CViewSettlementDlg::OnInitDialog()
 	m_strGeneralAffairs = sql_row[3];
 	m_strAccountNum = sql_row[4];
 	m_strMemo = sql_row[5];
+	m_strUnit = sql_row[7];
 	m_bChecked = FALSE;
 	
 	// 트리 최상위 노드
@@ -128,13 +129,12 @@ BOOL CViewSettlementDlg::OnInitDialog()
 	sql_result = mysql_store_result(&Connect);
 	int indexCount = 0;
 	HTREEITEM hChild[100][100];
-	CString listContentSeq[100][2];
+	CString listContentSeq[100];
 	while ((sql_row = mysql_fetch_row(sql_result)) != NULL) {
 		CString degree, place, node;
 		degree = sql_row[2];
-		place = sql_row[5];
-		listContentSeq[indexCount][0] = sql_row[0];	// content_seq
-		listContentSeq[indexCount][1] = sql_row[4];	// unit
+		place = sql_row[4];
+		listContentSeq[indexCount] = sql_row[0];	// content_seq
 		
 		node = degree;
 		if (!place.IsEmpty()) {
@@ -144,16 +144,16 @@ BOOL CViewSettlementDlg::OnInitDialog()
 	}
 
 	// unit 콤보 박스 초기설정
-	if (listContentSeq[0][1] == "원")
+	if (m_strUnit == "원")
 	{
 		m_cbUnit.SetCurSel(0);
 		m_cbBalanceUnit.SetCurSel(0);
 	}
-	else if (listContentSeq[0][1] == "달러") {
+	else if (m_strUnit == "달러") {
 		m_cbUnit.SetCurSel(1);
 		m_cbBalanceUnit.SetCurSel(1);
 	}
-	else if (listContentSeq[0][1] == "엔") {
+	else if (m_strUnit == "엔") {
 		m_cbUnit.SetCurSel(2);
 		m_cbBalanceUnit.SetCurSel(2);
 	}
@@ -163,7 +163,7 @@ BOOL CViewSettlementDlg::OnInitDialog()
 	int unpaidTotalCount = 0;	// 미정산 인원
 	int unpaidAmount = 0;		// 미정산 금액
 	for (int i = 0; i < indexCount; i++) {
-		query.Format(_T("SELECT * FROM participants WHERE content_seq = %d ORDER BY name ASC"), _ttoi(listContentSeq[i][0]));
+		query.Format(_T("SELECT * FROM participants WHERE content_seq = %d ORDER BY name ASC"), _ttoi(listContentSeq[i]));
 		CStringA participantA(query);
 		cstr = participantA;
 		mysql_query(&Connect, cstr);
@@ -173,7 +173,7 @@ BOOL CViewSettlementDlg::OnInitDialog()
 			CString name, moneyToPay, item;
 			name = sql_row[2];
 			moneyToPay = sql_row[4];
-			item = name + _T(", ") + moneyToPay + listContentSeq[i][1];
+			item = name + _T(", ") + moneyToPay + m_strUnit;
 			hChild[i][j] = m_treeControl.InsertItem(item, hChild[i][0]);
 			m_treeControl.Expand(hChild[i][j], TVE_EXPAND);
 

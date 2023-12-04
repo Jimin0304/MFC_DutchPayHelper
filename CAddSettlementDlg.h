@@ -59,4 +59,5 @@ public:
 	CListCtrl* GetListCtrlPointer();
 	afx_msg void OnBnClickedOk();
 	void InsertParticipants(int amount, CString nameList);
+	CComboBox m_cbSelectedUnit;
 };

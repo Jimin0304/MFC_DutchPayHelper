@@ -47,4 +47,5 @@ public:
 	int m_nAmount;
 	afx_msg void OnBnClickedOk();
 	MYSQL_ROW GetContentByDegree(CString degree);
+	CString m_strUnit;
 };
