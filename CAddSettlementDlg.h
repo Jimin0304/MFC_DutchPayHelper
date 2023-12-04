@@ -41,6 +41,7 @@ public:
 	CString m_strAccountNum;
 	CString m_strGeneralAffairs;
 	CString m_strMemo;
+	CString m_strUnit;
 	afx_msg void OnEnChangeEditGeneralAffairs();
 	virtual BOOL OnInitDialog();
 	afx_msg void OnLvnItemchangedList3(NMHDR* pNMHDR, LRESULT* pResult);
@@ -60,4 +61,5 @@ public:
 	afx_msg void OnBnClickedOk();
 	void InsertParticipants(int amount, CString nameList);
 	CComboBox m_cbSelectedUnit;
+	CString m_strPresnetUnit;
 };

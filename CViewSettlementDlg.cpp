@@ -6,6 +6,7 @@
 #include "CViewSettlementDlg.h"
 #include "afxdialogex.h"
 #include "DutchPayHelperDlg.h"
+#include "CChangeUnitDlg.h"
 
 
 // CViewSettlementDlg 대화 상자
@@ -59,6 +60,8 @@ void CViewSettlementDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CViewSettlementDlg, CDialogEx)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_CONTROL, &CViewSettlementDlg::OnSelchangedTreeControl)
 	ON_BN_CLICKED(IDOK, &CViewSettlementDlg::OnBnClickedOk)
+	ON_CBN_SELCHANGE(IDC_COMBO_BALANCE_UNIT, &CViewSettlementDlg::OnSelchangeComboBalanceUnit)
+	ON_CBN_SELCHANGE(IDC_COMBO_UNIT, &CViewSettlementDlg::OnSelchangeComboUnit)
 END_MESSAGE_MAP()
 
 
@@ -338,4 +341,49 @@ MYSQL_ROW CViewSettlementDlg::GetContentByDegree(CString degree)
 	mysql_free_result(sql_result);
 
 	return sql_row;
+}
+
+
+void CViewSettlementDlg::OnSelchangeComboBalanceUnit()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	// 현재 선택된 셀의 인덱스를 가져옵니다.
+	int selectedIndex = m_cbBalanceUnit.GetCurSel();
+
+	// 선택된 셀의 텍스트를 가져옵니다.
+	m_cbBalanceUnit.GetLBText(selectedIndex, m_strChangeUnit);
+
+	// CChangeUnitDlg에 선택된 셀의 텍스트를 전달하기 위해 인스턴스를 생성합니다.
+	CChangeUnitDlg* pdlgUnit = new CChangeUnitDlg;
+	pdlgUnit->SetViewDlg(this);
+	pdlgUnit->SetAmountOrBalance(0);
+	if (pdlgUnit->DoModal() == IDOK) {
+		m_nBalance = pdlgUnit->m_nChangeValue;
+		m_strUnit = pdlgUnit->m_strChangeUnit;
+
+		UpdateData(FALSE);
+	}
+}
+
+
+void CViewSettlementDlg::OnSelchangeComboUnit()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	// 현재 선택된 셀의 인덱스를 가져옵니다.
+	int selectedIndex = m_cbUnit.GetCurSel();
+
+	// 선택된 셀의 텍스트를 가져옵니다.
+	m_cbBalanceUnit.GetLBText(selectedIndex, m_strChangeUnit);
+
+	// CChangeUnitDlg에 선택된 셀의 텍스트를 전달하기 위해 인스턴스를 생성합니다.
+	CChangeUnitDlg* pdlgUnit = new CChangeUnitDlg;
+	pdlgUnit->SetViewDlg(this);
+	pdlgUnit->SetAmountOrBalance(1);
+	if (pdlgUnit->DoModal() == IDOK) {
+		m_nAmount = pdlgUnit->m_nChangeValue;
+		m_strUnit = pdlgUnit->m_strChangeUnit;
+
+		UpdateData(FALSE);
+	}
+
 }

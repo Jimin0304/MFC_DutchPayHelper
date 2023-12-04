@@ -6,6 +6,7 @@
 #include "CAddSettlementDlg.h"
 #include "afxdialogex.h"
 #include "DutchPayHelperDlg.h"
+#include "CChangeUnitDlg.h"
 
 
 // CAddSettlementDlg 대화 상자
@@ -409,11 +410,18 @@ void CAddSettlementDlg::OnBnClickedOk()
 		settlement += _T(", 0, ");
 
 		if (m_cbSelectedUnit.GetCurSel() == 0)
+		{
 			settlement += _T("'원')");
-		else if (m_cbSelectedUnit.GetCurSel() == 1)
+			m_strUnit = _T("원");
+		}
+		else if (m_cbSelectedUnit.GetCurSel() == 1) {
 			settlement += _T("'달러')");
-		else if (m_cbSelectedUnit.GetCurSel() == 2)
+			m_strUnit = _T("달러");
+		}
+		else if (m_cbSelectedUnit.GetCurSel() == 2) {
 			settlement += _T("'엔')");
+			m_strUnit = _T("엔");
+		}
 
 		CStringA cstrA(settlement);
 		const char* cstr = cstrA;
@@ -439,19 +447,38 @@ void CAddSettlementDlg::OnBnClickedOk()
 		strIndex = sql_row[0];
 		mysql_free_result(sql_result);
 
-		int unitIndex;
-		long amount;
-		CString degree, strAmount, place, nameList, lastUnit;
+		int unitIndex, unitLen;
+		CString degree, strAmount, place, nameList;
 
 		for (int i = 0; i < m_nCountCal; i++) {
 
 			degree = m_listCalculate.GetItemText(i, 0);
 			strAmount = m_listCalculate.GetItemText(i, 1);
-			if (strAmount.Find(_T("달러")) != -1)	// unit이 달러일 때
-				unitIndex = 2;
-			else
+			if (strAmount.Find(_T("원")) != -1) {
+				unitIndex = 0;
+				unitLen = 1;
+			}
+			else if (strAmount.Find(_T("달러")) != -1) {	// unit이 달러일 때
 				unitIndex = 1;
-			amount = _ttoi(strAmount.Left(strAmount.GetLength() - unitIndex));
+				unitLen = 2;
+			}
+			else if (strAmount.Find(_T("엔")) != -1) {
+				unitIndex = 2;
+				unitLen = 1;
+			}
+
+			m_nAmount = _ttoi(strAmount.Left(strAmount.GetLength() - unitLen));
+
+			if (m_cbSelectedUnit.GetCurSel() != unitIndex) {
+				m_cbSelectedUnit.GetLBText(unitIndex, m_strPresnetUnit);
+				CChangeUnitDlg* pdlgUnit = new CChangeUnitDlg;
+				pdlgUnit->SetAddDlg(this);
+				if (pdlgUnit->DoModal() == IDOK) {
+					m_nAmount = pdlgUnit->m_nChangeValue;
+				}
+				pdlgUnit->m_addDlg = nullptr;
+			}
+
 			place = m_listCalculate.GetItemText(i, 2);
 			if (place.IsEmpty()) {
 				place = _T("NULL");
@@ -462,7 +489,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 			nameList = m_listCalculate.GetItemText(i, 3);
 
 			tmp.Format(_T("INSERT INTO content (settlement_seq, degree, amount, place) VALUES (%d, '%s', %ld, %s)"),
-				_ttoi(strIndex), degree, amount, place);
+				_ttoi(strIndex), degree, m_nAmount, place);
 
 			CStringA contentA(tmp);
 			const char* content = contentA;
@@ -481,7 +508,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 				// 쿼리 실행이 성공함
 				// 트랜잭션 커밋
 				mysql_commit(&Connect);
-				InsertParticipants(amount, nameList);
+				InsertParticipants(m_nAmount, nameList);
 			}
 		}
 	}

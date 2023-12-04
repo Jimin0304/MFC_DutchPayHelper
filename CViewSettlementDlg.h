@@ -48,4 +48,9 @@ public:
 	afx_msg void OnBnClickedOk();
 	MYSQL_ROW GetContentByDegree(CString degree);
 	CString m_strUnit;
+	afx_msg void OnSelchangeComboBalanceUnit();
+	afx_msg void OnSelchangeComboUnit();
+	CString m_strChangeUnit;
+
+	//TODO::m_strChangeUnit이런거 amount랑 balance나눠야됨, ExchangeRate double 형식 가능하게 함
 };

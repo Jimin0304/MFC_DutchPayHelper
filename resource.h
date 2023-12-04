@@ -33,7 +33,6 @@
 #define IDC_EDIT_BALANCE                1019
 #define IDC_BUTTON_CALCULATE_DELETE     1021
 #define IDC_EDIT_DETAIL_BALANCE         1021
-#define IDC_COMBO_UNIT2                 1022
 #define IDC_COMBO_SELECTED_UNIT         1022
 #define IDC_TREE1                       1023
 #define IDC_TREE_CONTROL                1023
@@ -57,6 +56,7 @@
 #define IDC_EDIT_EXCHANGE_RATE          1033
 #define IDC_EDIT_MEMO                   1035
 #define IDC_EDIT_VIEW_DATE              1037
+#define IDC_BUTTON_CHANGE               1038
 
 // Next default values for new objects
 // 
@@ -64,7 +64,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        139
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1038
+#define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif
