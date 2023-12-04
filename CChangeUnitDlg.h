@@ -27,7 +27,7 @@ public:
 	void SetAddDlg(CAddSettlementDlg* dlg);
 	CString m_strChangeUnit;
 	long m_nChangeValue;
-	long m_nExchangeRate;
+	double m_dExchangeRate;
 	CString m_strPresentUnit;
 	long m_nPresentValue;
 	CString m_strUnit;

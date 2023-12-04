@@ -17,7 +17,7 @@ CChangeUnitDlg::CChangeUnitDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DIALOG_CHANGE_UNIT, pParent)
 	, m_strChangeUnit(_T(""))
 	, m_nChangeValue(0)
-	, m_nExchangeRate(0)
+	, m_dExchangeRate(0)
 	, m_strPresentUnit(_T(""))
 	, m_nPresentValue(0)
 	, m_strUnit(_T(""))
@@ -34,7 +34,7 @@ void CChangeUnitDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT_CHANGE_UNIT, m_strChangeUnit);
 	DDX_Text(pDX, IDC_EDIT_CHANGE_VALUE, m_nChangeValue);
-	DDX_Text(pDX, IDC_EDIT_EXCHANGE_RATE, m_nExchangeRate);
+	DDX_Text(pDX, IDC_EDIT_EXCHANGE_RATE, m_dExchangeRate);
 	DDX_Text(pDX, IDC_EDIT_PRESENT_UNIT, m_strPresentUnit);
 	DDX_Text(pDX, IDC_EDIT_PRESENT_VALUE, m_nPresentValue);
 	DDX_Text(pDX, IDC_EDIT_UNIT, m_strUnit);
@@ -88,7 +88,7 @@ BOOL CChangeUnitDlg::OnInitDialog()
 		m_strChangeUnit = m_viewDlg->m_strChangeUnit;
 		m_nPresentValue = m_viewDlg->m_nBalance;
 	}
-	m_nExchangeRate = 0;
+	m_dExchangeRate = 0;
 
 	CString strPresentValue;
 	strPresentValue.Format(_T("%d"), m_nPresentValue);
@@ -107,20 +107,20 @@ void CChangeUnitDlg::OnClickedButtonChange()
 	// 우선순위 - 1달러 > 100 엔 > 1000원 기준으로
 	UpdateData(TRUE);
 
-	if (m_nExchangeRate)
+	if (m_dExchangeRate)
 	{
 		if (m_strPresentUnit == "원" && m_strChangeUnit == "달러")
-			m_nChangeValue = m_nPresentValue / m_nExchangeRate;
+			m_nChangeValue = m_nPresentValue / m_dExchangeRate;
 		else if (m_strPresentUnit == "원" && m_strChangeUnit == "엔")
-			m_nChangeValue = m_nPresentValue / m_nExchangeRate * 100;
+			m_nChangeValue = m_nPresentValue / m_dExchangeRate * 100;
 		else if (m_strPresentUnit == "달러" && m_strChangeUnit == "원")
-			m_nChangeValue = m_nPresentValue * m_nExchangeRate;
+			m_nChangeValue = m_nPresentValue * m_dExchangeRate;
 		else if (m_strPresentUnit == "달러" && m_strChangeUnit == "엔")
-			m_nChangeValue = m_nPresentValue * m_nExchangeRate;
+			m_nChangeValue = m_nPresentValue * m_dExchangeRate;
 		else if (m_strPresentUnit == "엔" && m_strChangeUnit == "원")
-			m_nChangeValue = m_nPresentValue * m_nExchangeRate / 100;
+			m_nChangeValue = m_nPresentValue * m_dExchangeRate / 100;
 		else if (m_strPresentUnit == "엔" && m_strChangeUnit == "달러")
-			m_nChangeValue = m_nPresentValue * m_nExchangeRate;
+			m_nChangeValue = m_nPresentValue * m_dExchangeRate;
 
 		CString strPresentValue, strChangeValue;
 		strPresentValue.Format(_T("%d"), m_nPresentValue);
