@@ -429,6 +429,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 		strIndex = sql_row[0];
 		mysql_free_result(sql_result);
 
+		int unitIndex;
 		long amount;
 		CString degree, strAmount, unit, place, nameList;
 
@@ -436,8 +437,12 @@ void CAddSettlementDlg::OnBnClickedOk()
 
 			degree = m_listCalculate.GetItemText(i, 0);
 			strAmount = m_listCalculate.GetItemText(i, 1);
-			amount = _ttoi(strAmount.Left(strAmount.GetLength() - 1));
-			unit = strAmount.Right(1);
+			if (strAmount.Find(_T("달러")) != -1)	// unit이 달러일 때
+				unitIndex = 2;
+			else
+				unitIndex = 1;
+			amount = _ttoi(strAmount.Left(strAmount.GetLength() - unitIndex));
+			unit = strAmount.Right(unitIndex);
 			place = m_listCalculate.GetItemText(i, 2);
 			if (place.IsEmpty()) {
 				place = _T("NULL");
