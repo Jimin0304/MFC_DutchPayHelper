@@ -435,7 +435,7 @@ void CDutchPayHelperDlg::OnLvnItemchangedListDutchpay(NMHDR* pNMHDR, LRESULT* pR
 void CDutchPayHelperDlg::OnClickedButtonViewDetails()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	if (m_nSelectedPay >= 0) {
+	if (m_nSelectedPay >= 0 && m_listDutchPay.GetItemCount() > 0) {
 		CViewSettlementDlg* pdlgView = new CViewSettlementDlg;
 		pdlgView->SetViewParentDlg(this);
 		pdlgView->DoModal();
