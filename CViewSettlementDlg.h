@@ -43,5 +43,6 @@ public:
 	int m_nBalance;
 	CString m_strDegree;
 	CString m_strName;
-	CString m_strAmount;
+//	CString m_strAmount;
+	int m_nAmount;
 };

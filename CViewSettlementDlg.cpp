@@ -24,7 +24,7 @@ CViewSettlementDlg::CViewSettlementDlg(CWnd* pParent /*=nullptr*/)
 	, m_nBalance(0)
 	, m_strDegree(_T(""))
 	, m_strName(_T(""))
-	, m_strAmount(_T(""))
+	, m_nAmount(0)
 {
 
 }
@@ -51,7 +51,8 @@ void CViewSettlementDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_BALANCE, m_nBalance);
 	DDX_Text(pDX, IDC_EDIT_DEGREE, m_strDegree);
 	DDX_Text(pDX, IDC_EDIT_NAME, m_strName);
-	DDX_Text(pDX, IDC_EDIT_AMOUNT, m_strAmount);
+	//  DDX_Text(pDX, IDC_EDIT_AMOUNT, m_strAmount);
+	DDX_Text(pDX, IDC_EDIT_AMOUNT, m_nAmount);
 }
 
 
@@ -226,7 +227,9 @@ void CViewSettlementDlg::OnSelchangedTreeControl(NMHDR* pNMHDR, LRESULT* pResult
 		sql_row = mysql_fetch_row(sql_result);
 		if (sql_row == NULL)
 			AfxMessageBox(_T("조회된 sql_row가 없습니다."));
-		m_strAmount = sql_row[3];
+		CString strAmount;
+		strAmount = sql_row[3];
+		m_nAmount = _ttoi(strAmount);
 
 		// 금액 단위
 		CString unit;
@@ -240,45 +243,44 @@ void CViewSettlementDlg::OnSelchangedTreeControl(NMHDR* pNMHDR, LRESULT* pResult
 		else if (unit == "엔")
 			m_cbUnit.SetCurSel(2);
 	}
-	else {	// 참여자 노드를 선택했을 때
+	else if (hParentItem !=  NULL) {	// 참여자 노드를 선택했을 때
 		CString text = m_treeControl.GetItemText(m_hSelectNode);
-		int retval = 0;
-		retval = text.Find(',');
-		m_strName = text.Left(retval);
-		CString amount = text.Mid(retval + 2);
-		CString unit;
-		if (amount.Right(1) == _T("러")) {
-			amount = amount.Left(amount.GetLength() - 2);
-			unit = _T("달러");
+		AfxExtractSubString(m_strName, text, 0, _T(','));
+
+		// 모든 참여자 노드 돌면서 m_strName의 지불 금액 구하기
+		HTREEITEM hChildItem = m_treeControl.GetChildItem(m_hRoot);
+		int totalAmount = 0;
+		m_strDegree = "";
+		bool isAttend = FALSE;
+		HTREEITEM hParticipantsItem;
+		while (hChildItem != NULL) {	// 차수 노드 루프
+			hParticipantsItem = m_treeControl.GetChildItem(hChildItem);
+			while (hParticipantsItem != NULL) {		// 각 차수 노드의 참여자 노드 루프
+				CString part = m_treeControl.GetItemText(hParticipantsItem);
+				if (part.Find(m_strName) != -1) { // m_strName이 포함되어 있을 때
+					int retval = 0;
+					retval = part.Find(',');
+					CString amount = part.Mid(retval + 2);
+					if (amount.Find(_T("달러")))		// 끝에 unit 자르기
+						amount = amount.Mid(0, amount.GetLength() - 1);
+					else 
+						amount = amount.Mid(0, amount.GetLength());
+					totalAmount += _ttoi(amount);
+					isAttend = TRUE;
+				}
+				hParticipantsItem = m_treeControl.GetNextItem(hParticipantsItem, TVGN_NEXT);	// 다음 참여자 노드
+			}
+			if (isAttend == TRUE) {
+				CString degree;
+				AfxExtractSubString(degree, m_treeControl.GetItemText(hChildItem), 0, _T('차'));
+				m_strDegree += degree + _T(", ");
+			}
+			isAttend = FALSE;
+			hChildItem = m_treeControl.GetNextItem(hChildItem, TVGN_NEXT);	// 다음 차수 노드
 		}
-		else {
-			amount = amount.Left(amount.GetLength() - 1);
-			unit = amount.Right(1);
-		}
-
-		CString degreeList = m_treeControl.GetItemText(hParentItem);
-		AfxExtractSubString(m_strDegree, degreeList, 0, _T('차'));
-
-		while (hParentItem != NULL) {
-			// 차수 노드 데이터 처리
-			CString childText;
-			AfxExtractSubString(childText, m_treeControl.GetItemText(hParentItem), 0, _T('차'));
-			degreeList += _T(", ") + childText;
-
-			CString query;
-			query.Format(_T("SELECT * FROM content WHERE settlement_seq = %d AND degree = '%s'"), m_nIndex, m_strDegree);
-			CStringA strA(query);
-			const char* cstr = strA;
-			mysql_query(&Connect, cstr);
-			sql_result = mysql_store_result(&Connect);
-			sql_row = mysql_fetch_row(sql_result);
-			if (sql_row == NULL)
-				AfxMessageBox(_T("조회된 sql_row가 없습니다."));
-			m_strAmount = sql_row[3];
-
-			// 다음 차수 항목(노드) 가져오기
-			hParentItem = m_treeControl.GetNextItem(hParentItem, TVGN_NEXT);
-		}
+		m_strDegree = m_strDegree.Mid(0, m_strDegree.GetLength() - 2);
+		m_strDegree += _T("차");
+		m_nAmount = totalAmount;
 	}
 
 	UpdateData(FALSE);
