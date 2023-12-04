@@ -102,7 +102,8 @@ BOOL CViewSettlementDlg::OnInitDialog()
 	m_strGeneralAffairs = sql_row[3];
 	m_strAccountNum = sql_row[4];
 	m_strMemo = sql_row[5];
-	m_strUnit = sql_row[7];
+	m_strBalancePresentUnit = m_strAmountPresentUnit = sql_row[7];
+
 	m_bChecked = FALSE;
 	
 	// 트리 최상위 노드
@@ -147,16 +148,16 @@ BOOL CViewSettlementDlg::OnInitDialog()
 	}
 
 	// unit 콤보 박스 초기설정
-	if (m_strUnit == "원")
+	if (m_strAmountPresentUnit == "원")
 	{
 		m_cbUnit.SetCurSel(0);
 		m_cbBalanceUnit.SetCurSel(0);
 	}
-	else if (m_strUnit == "달러") {
+	else if (m_strAmountPresentUnit == "달러") {
 		m_cbUnit.SetCurSel(1);
 		m_cbBalanceUnit.SetCurSel(1);
 	}
-	else if (m_strUnit == "엔") {
+	else if (m_strAmountPresentUnit == "엔") {
 		m_cbUnit.SetCurSel(2);
 		m_cbBalanceUnit.SetCurSel(2);
 	}
@@ -176,7 +177,7 @@ BOOL CViewSettlementDlg::OnInitDialog()
 			CString name, moneyToPay, item;
 			name = sql_row[2];
 			moneyToPay = sql_row[4];
-			item = name + _T(", ") + moneyToPay + m_strUnit;
+			item = name + _T(", ") + moneyToPay + m_strAmountPresentUnit;
 			hChild[i][j] = m_treeControl.InsertItem(item, hChild[i][0]);
 			m_treeControl.Expand(hChild[i][j], TVE_EXPAND);
 
@@ -351,7 +352,7 @@ void CViewSettlementDlg::OnSelchangeComboBalanceUnit()
 	int selectedIndex = m_cbBalanceUnit.GetCurSel();
 
 	// 선택된 셀의 텍스트를 가져옵니다.
-	m_cbBalanceUnit.GetLBText(selectedIndex, m_strChangeUnit);
+	m_cbBalanceUnit.GetLBText(selectedIndex, m_strBalanceChangeUnit);
 
 	// CChangeUnitDlg에 선택된 셀의 텍스트를 전달하기 위해 인스턴스를 생성합니다.
 	CChangeUnitDlg* pdlgUnit = new CChangeUnitDlg;
@@ -359,7 +360,7 @@ void CViewSettlementDlg::OnSelchangeComboBalanceUnit()
 	pdlgUnit->SetAmountOrBalance(0);
 	if (pdlgUnit->DoModal() == IDOK) {
 		m_nBalance = pdlgUnit->m_nChangeValue;
-		m_strUnit = pdlgUnit->m_strChangeUnit;
+		m_strBalancePresentUnit = pdlgUnit->m_strChangeUnit;
 
 		UpdateData(FALSE);
 	}
@@ -373,7 +374,7 @@ void CViewSettlementDlg::OnSelchangeComboUnit()
 	int selectedIndex = m_cbUnit.GetCurSel();
 
 	// 선택된 셀의 텍스트를 가져옵니다.
-	m_cbBalanceUnit.GetLBText(selectedIndex, m_strChangeUnit);
+	m_cbBalanceUnit.GetLBText(selectedIndex, m_strAmountChangeUnit);
 
 	// CChangeUnitDlg에 선택된 셀의 텍스트를 전달하기 위해 인스턴스를 생성합니다.
 	CChangeUnitDlg* pdlgUnit = new CChangeUnitDlg;
@@ -381,7 +382,7 @@ void CViewSettlementDlg::OnSelchangeComboUnit()
 	pdlgUnit->SetAmountOrBalance(1);
 	if (pdlgUnit->DoModal() == IDOK) {
 		m_nAmount = pdlgUnit->m_nChangeValue;
-		m_strUnit = pdlgUnit->m_strChangeUnit;
+		m_strAmountPresentUnit = pdlgUnit->m_strChangeUnit;
 
 		UpdateData(FALSE);
 	}

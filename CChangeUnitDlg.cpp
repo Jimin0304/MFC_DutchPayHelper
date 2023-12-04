@@ -79,13 +79,13 @@ BOOL CChangeUnitDlg::OnInitDialog()
 		m_nPresentValue = m_addDlg->m_nAmount;
 	}
 	else if (m_viewDlg != NULL && m_isAmount == 1) {	// View에서 생성했을 때, 전체 금액 조회일 때
-		m_strPresentUnit = m_viewDlg->m_strUnit;
-		m_strChangeUnit = m_viewDlg->m_strChangeUnit;
+		m_strPresentUnit = m_viewDlg->m_strAmountPresentUnit;
+		m_strChangeUnit = m_viewDlg->m_strAmountChangeUnit;
 		m_nPresentValue = m_viewDlg->m_nAmount;
 	}
 	else if (m_viewDlg != NULL && m_isAmount == 0) {	// View에서 생성했을 때, 잔돈 조회일 때
-		m_strPresentUnit = m_viewDlg->m_strUnit;
-		m_strChangeUnit = m_viewDlg->m_strChangeUnit;
+		m_strPresentUnit = m_viewDlg->m_strBalancePresentUnit;
+		m_strChangeUnit = m_viewDlg->m_strBalanceChangeUnit;
 		m_nPresentValue = m_viewDlg->m_nBalance;
 	}
 	m_dExchangeRate = 0;
