@@ -58,6 +58,7 @@ void CViewSettlementDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CViewSettlementDlg, CDialogEx)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_CONTROL, &CViewSettlementDlg::OnSelchangedTreeControl)
+	ON_BN_CLICKED(IDOK, &CViewSettlementDlg::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 
@@ -98,8 +99,7 @@ BOOL CViewSettlementDlg::OnInitDialog()
 	m_strGeneralAffairs = sql_row[3];
 	m_strAccountNum = sql_row[4];
 	m_strMemo = sql_row[5];
-	m_cbUnit.SetCurSel(0);
-	m_cbBalanceUnit.SetCurSel(0);
+	m_bChecked = FALSE;
 	
 	// 트리 최상위 노드
 	CString hRootNode = m_strDate;
@@ -142,6 +142,21 @@ BOOL CViewSettlementDlg::OnInitDialog()
 		}
 		hChild[indexCount++][0] = m_treeControl.InsertItem(node, m_hRoot);
 	}
+
+	// unit 콤보 박스 초기설정
+	if (listContentSeq[0][1] == "원")
+	{
+		m_cbUnit.SetCurSel(0);
+		m_cbBalanceUnit.SetCurSel(0);
+	}
+	else if (listContentSeq[0][1] == "달러") {
+		m_cbUnit.SetCurSel(1);
+		m_cbBalanceUnit.SetCurSel(1);
+	}
+	else if (listContentSeq[0][1] == "엔") {
+		m_cbUnit.SetCurSel(2);
+		m_cbBalanceUnit.SetCurSel(2);
+	}
 	mysql_free_result(sql_result);
 
 	// 참여자 트리
@@ -166,7 +181,6 @@ BOOL CViewSettlementDlg::OnInitDialog()
 			isPaid = sql_row[3];
 			if (_ttoi(isPaid) == 1) {	// 정산일 때 체크 표시
 				m_treeControl.SetCheck(hChild[i][j], true);
-				m_bChecked = TRUE;
 			}
 			else {		// 미정산 상태일 때 정산 현황 정보
 				unpaidTotalCount++;		
@@ -218,30 +232,10 @@ void CViewSettlementDlg::OnSelchangedTreeControl(NMHDR* pNMHDR, LRESULT* pResult
 		m_strName = nameList.Left(len);
 
 		// 금액
-		CString query;
-		query.Format(_T("SELECT * FROM content WHERE settlement_seq = %d AND degree = '%s'"), m_nIndex, m_strDegree);
-		CStringA strA(query);
-		const char* cstr = strA;
-		mysql_query(&Connect, cstr);
-		sql_result = mysql_store_result(&Connect);
-		sql_row = mysql_fetch_row(sql_result);
-		if (sql_row == NULL)
-			AfxMessageBox(_T("조회된 sql_row가 없습니다."));
+		sql_row = GetContentByDegree(m_strDegree);
 		CString strAmount;
 		strAmount = sql_row[3];
 		m_nAmount = _ttoi(strAmount);
-
-		// 금액 단위
-		CString unit;
-		unit = sql_row[4];
-		mysql_free_result(sql_result);
-
-		if (unit == "원")
-			m_cbUnit.SetCurSel(0);
-		else if (unit == "달러")
-			m_cbUnit.SetCurSel(1);
-		else if (unit == "엔")
-			m_cbUnit.SetCurSel(2);
 	}
 	else if (hParentItem !=  NULL) {	// 참여자 노드를 선택했을 때
 		CString text = m_treeControl.GetItemText(m_hSelectNode);
@@ -285,4 +279,63 @@ void CViewSettlementDlg::OnSelchangedTreeControl(NMHDR* pNMHDR, LRESULT* pResult
 
 	UpdateData(FALSE);
 	*pResult = 0;
+}
+
+void CViewSettlementDlg::OnBnClickedOk()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	UpdateData(TRUE);
+
+	// 모든 참여자 노드 돌면서 paid 상태 저장
+	HTREEITEM hChildItem = m_treeControl.GetChildItem(m_hRoot);
+	HTREEITEM hParticipantsItem;
+	CString query;
+	while (hChildItem != NULL) {	// 차수 노드 루프
+		CString degree, content_seq;
+		AfxExtractSubString(degree, m_treeControl.GetItemText(hChildItem), 0, _T('차'));
+		degree += _T("차");
+		sql_row = GetContentByDegree(degree);
+		content_seq = sql_row[0];
+		hParticipantsItem = m_treeControl.GetChildItem(hChildItem);
+		while (hParticipantsItem != NULL) {		// 각 차수 노드의 참여자 노드 루프
+			CString part = m_treeControl.GetItemText(hParticipantsItem);
+			CString name;
+			AfxExtractSubString(name, part, 0, _T(','));
+			query.Format(_T("UPDATE participants SET paid = %d WHERE content_seq = %d AND name = '%s'")
+				, m_treeControl.GetCheck(hParticipantsItem), _ttoi(content_seq), name);
+			CStringA queryA(query);
+			const char* cstr = queryA;
+			mysql_query(&Connect, cstr);
+
+			hParticipantsItem = m_treeControl.GetNextItem(hParticipantsItem, TVGN_NEXT);	// 다음 참여자 노드
+		}
+		hChildItem = m_treeControl.GetNextItem(hChildItem, TVGN_NEXT);	// 다음 차수 노드
+	}
+
+	// 정산 완료 상태, 정산 정보 수정
+	query.Format(_T("UPDATE settlement SET is_completed = %d, settlement_name = '%s', general_affairs = '%s', account_num = '%s', memo = '%s' WHERE seq = %d"),
+		m_bChecked, m_strCalcName, m_strGeneralAffairs, m_strAccountNum, m_strMemo, m_nIndex);
+	CStringA queryA(query);
+	const char* cstr = queryA;
+	mysql_query(&Connect, cstr);
+
+	CDialogEx::OnOK();
+}
+
+
+MYSQL_ROW CViewSettlementDlg::GetContentByDegree(CString degree)
+{
+	// TODO: 여기에 구현 코드 추가.
+	CString query;
+	query.Format(_T("SELECT * FROM content WHERE settlement_seq = %d AND degree = '%s'"), m_nIndex, degree);
+	CStringA strA(query);
+	const char* cstr = strA;
+	mysql_query(&Connect, cstr);
+	sql_result = mysql_store_result(&Connect);
+	sql_row = mysql_fetch_row(sql_result);
+	if (sql_row == NULL)
+		AfxMessageBox(_T("조회된 sql_row가 없습니다."));
+	mysql_free_result(sql_result);
+
+	return sql_row;
 }
