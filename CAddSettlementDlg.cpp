@@ -309,6 +309,7 @@ void CAddSettlementDlg::OnBnClickedOk()
 		sql_row = mysql_fetch_row(sql_result);
 		CString strIndex;
 		strIndex = sql_row[0];
+		m_nSettlementIndex = _ttoi(strIndex);
 		mysql_free_result(sql_result);
 
 		int unitIndex, unitLen;

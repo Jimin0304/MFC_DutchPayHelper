@@ -221,8 +221,16 @@ void CDutchPayHelperDlg::OnBnClickedButtonAdd()
 	// 정산 추가 화면을 모달로 띄운다.
 	CAddSettlementDlg* pdlgAdd = new CAddSettlementDlg;
 	pdlgAdd->SetParentDlg(this);
-	if (pdlgAdd->DoModal() == IDOK) {
-		DisplayUnCompletedSettlements();	// m_listDutchpay 미정산 리스트 다시 출력
+	if (pdlgAdd->DoModal() == IDOK) {	// 저장한 settlement의 view 화면을 띄움
+		int index = pdlgAdd->m_nSettlementIndex;
+		CString date = pdlgAdd->m_strDate;
+		CViewSettlementDlg* pdlgView = new CViewSettlementDlg;
+		pdlgView->SetViewParentDlg(this);
+		pdlgView->SetSettlementIndex(index);
+		pdlgView->SetStrDate(date);
+		if (pdlgView->DoModal() == IDOK) {
+			DisplayUnCompletedSettlements();	// m_listDutchpay 미정산 리스트 출력
+		}
 	}
 }
 

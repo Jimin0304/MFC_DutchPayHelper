@@ -50,4 +50,5 @@ public:
 	void InsertParticipants(int amount, CString nameList);
 	CComboBox m_cbSelectedUnit;
 	CString m_strPresnetUnit;
+	int m_nSettlementIndex;
 };

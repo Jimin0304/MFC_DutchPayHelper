@@ -52,4 +52,6 @@ public:
 	afx_msg void OnSelchangeComboUnit();
 	CString m_strBalancePresentUnit;
 	CString m_strBalanceChangeUnit;
+	void SetSettlementIndex(int index);
+	void SetStrDate(CString date);
 };

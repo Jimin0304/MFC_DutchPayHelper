@@ -78,9 +78,11 @@ BOOL CViewSettlementDlg::OnInitDialog()
 
 	// TODO:  여기에 추가 초기화 작업을 추가합니다.
 	// 상단 날짜 
-	CString index = m_pDlg->m_listDutchPay.GetItemText(m_pDlg->m_nSelectedPay, 0);
-	m_nIndex = _ttoi(index);
-	m_strDate = m_pDlg->m_listDutchPay.GetItemText(m_pDlg->m_nSelectedPay, 1);
+	if (!m_nIndex) {
+		CString index = m_pDlg->m_listDutchPay.GetItemText(m_pDlg->m_nSelectedPay, 0);
+		m_nIndex = _ttoi(index);
+		m_strDate = m_pDlg->m_listDutchPay.GetItemText(m_pDlg->m_nSelectedPay, 1);
+	}
 	CFont g_editFont;
 	g_editFont.CreatePointFont(150, TEXT("굴림"));
 	GetDlgItem(IDC_EDIT_VIEW_DATE)->SetFont(&g_editFont);
@@ -393,4 +395,18 @@ void CViewSettlementDlg::OnSelchangeComboUnit()
 		UpdateData(FALSE);
 	}
 
+}
+
+
+void CViewSettlementDlg::SetSettlementIndex(int index)
+{
+	// TODO: 여기에 구현 코드 추가.
+	m_nIndex = index;
+}
+
+
+void CViewSettlementDlg::SetStrDate(CString date)
+{
+	// TODO: 여기에 구현 코드 추가.
+	m_strDate = date;
 }
