@@ -78,7 +78,7 @@ BOOL CViewSettlementDlg::OnInitDialog()
 
 	// TODO:  여기에 추가 초기화 작업을 추가합니다.
 	// 상단 날짜 
-	if (!m_nIndex) {
+	if (m_nIndex <= 0) {
 		CString index = m_pDlg->m_listDutchPay.GetItemText(m_pDlg->m_nSelectedPay, 0);
 		m_nIndex = _ttoi(index);
 		m_strDate = m_pDlg->m_listDutchPay.GetItemText(m_pDlg->m_nSelectedPay, 1);
