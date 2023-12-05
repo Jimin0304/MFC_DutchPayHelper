@@ -15,10 +15,40 @@
 #pragma comment (lib, "libmysql.lib")
 #pragma comment (lib, "ws2_32.lib")
 
-#define CON_IP "localhost"
-#define DB_USER "root"
-#define DB_PASS "qwer1234"
-#define DB_NAME "dutchpayhelper"
+#define CON_IP "localhost"			// 호스트 IP
+#define DB_USER "root"				// 접속 ID
+#define DB_PASS "qwer1234"			// 접속 암호
+#define DB_NAME "dutchpayhelper"	// DB명
+
+#define SQL_CREATE_SETTLEMENT_TABLE "CREATE TABLE settlement (\
+	seq INT NOT NULL AUTO_INCREMENT,\
+	settlement_date     Date,\
+	settlement_name VARCHAR(50),\
+	general_affairs VARCHAR(20),\
+	account_num VARCHAR(50),\
+	memo VARCHAR(100),\
+	is_completed     bool,\
+	amount_unit VARCHAR(5),\
+	PRIMARY KEY(seq)\
+	) ENGINE = MYISAM CHARSET = utf8mb4; "
+#define SQL_CREATE_CONTENT_TABLE "CREATE TABLE content (\
+	content_seq INT NOT NULL AUTO_INCREMENT,\
+	settlement_seq INT,\
+	degree VARCHAR(5),\
+	amount Long,\
+	place  VARCHAR(50),\
+	PRIMARY KEY(content_seq),\
+	FOREIGN KEY(settlement_seq) REFERENCES settlement(seq)\
+	) ENGINE = MYISAM CHARSET = utf8mb4;"
+#define SQL_CREATE_PARTICIPANTS_TABLE "CREATE TABLE participants (\
+	participants_seq INT NOT NULL AUTO_INCREMENT,\
+	content_seq INT NOT NULL,\
+	name VARCHAR(20),\
+	paid bool,\
+	money_to_pay Long,\
+	PRIMARY KEY(participants_seq),\
+	FOREIGN KEY(content_seq) REFERENCES content(content_seq)\
+	) ENGINE = MYISAM CHARSET = utf8mb4; "
 
 extern MYSQL Connect;
 extern MYSQL_RES* sql_result;

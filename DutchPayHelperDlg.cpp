@@ -79,8 +79,6 @@ BEGIN_MESSAGE_MAP(CDutchPayHelperDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_NOTIFY(MCN_SELCHANGE, IDC_MONTHCALENDAR1, &CDutchPayHelperDlg::OnMcnSelchangeMonthcalendar1)
-	ON_LBN_SELCHANGE(IDC_LIST_DUTCHPAY, &CDutchPayHelperDlg::OnLbnSelchangeListDutchpay)
 	ON_BN_CLICKED(IDC_BUTTON_ADD, &CDutchPayHelperDlg::OnBnClickedButtonAdd)
 	ON_NOTIFY(MCN_SELCHANGE, IDC_MONTHCALENDAR, &CDutchPayHelperDlg::OnSelchangeMonthcalendar)
 	ON_NOTIFY(DTN_DATETIMECHANGE, IDC_DATETIMEPICKER, &CDutchPayHelperDlg::OnDatetimechangeDatetimepicker)
@@ -134,9 +132,32 @@ BOOL CDutchPayHelperDlg::OnInitDialog()
 	}
 	else
 	{
+		// 한글 깨짐 해결
 		mysql_query(&Connect, "set session character_set_connection=euckr;");
 		mysql_query(&Connect, "set session character_set_results=euckr;");
 		mysql_query(&Connect, "set session character_set_client=euckr;");
+
+		// table 없을 때 생성
+		mysql_query(&Connect, "SHOW TABLES");
+		sql_result = mysql_store_result(&Connect);
+		sql_row = mysql_fetch_row(sql_result);
+		if (sql_row == NULL)
+		{
+			mysql_query(&Connect, SQL_CREATE_SETTLEMENT_TABLE);
+			mysql_query(&Connect, SQL_CREATE_CONTENT_TABLE);
+			mysql_query(&Connect, SQL_CREATE_PARTICIPANTS_TABLE);
+		}
+		mysql_free_result(sql_result);	// sql_result 메모리 해제
+
+		// IDC_LIST_DUTCHPAY 초기화
+		m_listDutchPay.InsertColumn(0, _T("번호"), LVCFMT_CENTER, 40);
+		m_listDutchPay.InsertColumn(1, _T("날짜"), LVCFMT_CENTER, 95);
+		m_listDutchPay.InsertColumn(2, _T("모임 이름"), LVCFMT_CENTER, 82);
+		m_listDutchPay.InsertColumn(3, _T("총무"), LVCFMT_CENTER, 70);
+		m_listDutchPay.InsertColumn(4, _T("완료"), LVCFMT_CENTER, 50);
+		m_listDutchPay.SetExtendedStyle(m_listDutchPay.GetExtendedStyle() |
+			LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
 
 		DisplayUnCompletedSettlements();
 	}
@@ -194,33 +215,14 @@ HCURSOR CDutchPayHelperDlg::OnQueryDragIcon()
 }
 
 
-
-void CDutchPayHelperDlg::OnBnClickedButton1()
-{
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
-void CDutchPayHelperDlg::OnMcnSelchangeMonthcalendar1(NMHDR* pNMHDR, LRESULT* pResult)
-{
-	LPNMSELCHANGE pSelChange = reinterpret_cast<LPNMSELCHANGE>(pNMHDR);
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	*pResult = 0;
-}
-
-
-void CDutchPayHelperDlg::OnLbnSelchangeListDutchpay()
-{
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
 void CDutchPayHelperDlg::OnBnClickedButtonAdd()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	// 정산 추가 화면을 모달로 띄운다.
 	CAddSettlementDlg* pdlgAdd = new CAddSettlementDlg;
 	pdlgAdd->SetParentDlg(this);
 	if (pdlgAdd->DoModal() == IDOK) {
+		DisplayUnCompletedSettlements();	// m_listDutchpay 미정산 리스트 다시 출력
 	}
 }
 
@@ -245,7 +247,7 @@ void CDutchPayHelperDlg::OnDatetimechangeDatetimepicker(NMHDR* pNMHDR, LRESULT* 
 	// COleDateTime에 선택된 날짜 설정
 	m_timeDT = COleDateTime(selectedDate);
 
-	// DutchPay List 출력
+	// 선택한 날짜의 정산 내역 리스트 출력
 	CString formattedDate = m_timeDT.Format(_T("%Y-%m-%d"));
 	DisplaySelectedDateSettlements(formattedDate);
 
@@ -264,20 +266,10 @@ void CDutchPayHelperDlg::OnClickedButtonPickDate()
 void CDutchPayHelperDlg::DisplayUnCompletedSettlements()
 {
 	// TODO: 여기에 구현 코드 추가.
-	// IDC_LIST_DUTCHPAY에 연결된 CListCtrl 가져오기
-	CListCtrl* pListCtrl = (CListCtrl*)GetDlgItem(IDC_LIST_DUTCHPAY);
+	// m_listDutchPay 기존 아이템 전체 삭제
+	m_listDutchPay.DeleteAllItems();
 
-	// CListCtrl 초기화
-	pListCtrl->DeleteAllItems();
-	pListCtrl->InsertColumn(0, _T("번호"), LVCFMT_CENTER, 40);
-	pListCtrl->InsertColumn(1, _T("날짜"), LVCFMT_CENTER, 95);
-	pListCtrl->InsertColumn(2, _T("모임 이름"), LVCFMT_CENTER, 82);
-	pListCtrl->InsertColumn(3, _T("총무"), LVCFMT_CENTER, 70);
-	pListCtrl->InsertColumn(4, _T("완료"), LVCFMT_CENTER, 50);
-	pListCtrl->SetExtendedStyle(pListCtrl->GetExtendedStyle() |
-		LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-
-	// settlement 테이블에서 is_completed가 false인 항목 검색
+	// settlement 테이블에서 미정산 상태인 항목 검색
 	if (mysql_query(&Connect, "SELECT * FROM settlement WHERE is_completed = 0") == 0) {
 		sql_result = mysql_store_result(&Connect);
 		if (sql_result != NULL) {
@@ -292,11 +284,11 @@ void CDutchPayHelperDlg::DisplayUnCompletedSettlements()
 				affairs = sql_row[3];
 				is_completed = "X";
 
-				pListCtrl->InsertItem(row, index);
-				pListCtrl->SetItem(row, 1, LVIF_TEXT, date, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 2, LVIF_TEXT, name, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 3, LVIF_TEXT, affairs, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 4, LVIF_TEXT, is_completed, 0, 0, 0, 0);
+				m_listDutchPay.InsertItem(row, index);
+				m_listDutchPay.SetItem(row, 1, LVIF_TEXT, date, 0, 0, 0, 0);
+				m_listDutchPay.SetItem(row, 2, LVIF_TEXT, name, 0, 0, 0, 0);
+				m_listDutchPay.SetItem(row, 3, LVIF_TEXT, affairs, 0, 0, 0, 0);
+				m_listDutchPay.SetItem(row, 4, LVIF_TEXT, is_completed, 0, 0, 0, 0);
 
 				row++;
 			}
@@ -311,19 +303,16 @@ void CDutchPayHelperDlg::DisplayUnCompletedSettlements()
 void CDutchPayHelperDlg::DisplaySelectedDateSettlements(CString selectedDate)
 {
 	// TODO: 여기에 구현 코드 추가.
-	// IDC_LIST_DUTCHPAY에 연결된 CListCtrl 가져오기
-	CListCtrl* pListCtrl = (CListCtrl*)GetDlgItem(IDC_LIST_DUTCHPAY);
-
-	// CListCtrl 초기화
-	pListCtrl->DeleteAllItems();
+	// m_listDutchPay 초기화
+	m_listDutchPay.DeleteAllItems();
 
 	CString query;
-	query.Format(_T("SELECT * FROM settlement WHERE settlement_date = '%s'"), selectedDate);
+	query.Format(_T("SELECT * FROM settlement WHERE settlement_date = '%s'"), selectedDate);	// settlement 테이블에서 settlement_date가 selectedDate인 항목 검색
 
+	// mysql_queyr 형식에 맞추기 위한 변환 과정
 	CStringA cstrA(query);
 	const char* cstr = cstrA;
 
-	// settlement 테이블에서 settlement_date가 selectedDate인 항목 검색
 	if (mysql_query(&Connect, cstr) == 0) {
 		sql_result = mysql_store_result(&Connect);
 		if (sql_result != NULL) {
@@ -342,11 +331,11 @@ void CDutchPayHelperDlg::DisplaySelectedDateSettlements(CString selectedDate)
 				is_completed = (completedValue == 0) ? _T("X") : _T("O");
 
 
-				pListCtrl->InsertItem(row, index);
-				pListCtrl->SetItem(row, 1, LVIF_TEXT, date, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 2, LVIF_TEXT, name, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 3, LVIF_TEXT, affairs, 0, 0, 0, 0);
-				pListCtrl->SetItem(row, 4, LVIF_TEXT, is_completed, 0, 0, 0, 0);
+				m_listDutchPay.InsertItem(row, index);
+				m_listDutchPay.SetItem(row, 1, LVIF_TEXT, date, 0, 0, 0, 0);
+				m_listDutchPay.SetItem(row, 2, LVIF_TEXT, name, 0, 0, 0, 0);
+				m_listDutchPay.SetItem(row, 3, LVIF_TEXT, affairs, 0, 0, 0, 0);
+				m_listDutchPay.SetItem(row, 4, LVIF_TEXT, is_completed, 0, 0, 0, 0);
 
 				row++;
 			}
@@ -357,10 +346,8 @@ void CDutchPayHelperDlg::DisplaySelectedDateSettlements(CString selectedDate)
 	}
 	else {
 		// 쿼리 실행이 실패함
-			// 에러 처리 코드 추가
 		CString error(mysql_error(&Connect));
-		// 에러 메시지를 출력하거나 로그에 기록
-		AfxMessageBox(_T("Error executing query: ") + query);
+		// 에러 메시지를 출력
 		AfxMessageBox(_T("Error executing query: ") + error);
 	}
 }
@@ -369,9 +356,10 @@ void CDutchPayHelperDlg::DisplaySelectedDateSettlements(CString selectedDate)
 void CDutchPayHelperDlg::OnClickedButtonDelete()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	if (m_nSelectedPay >= 0) {
+	// 선택된 셀이 있고, list에 아이템이 있을 때
+	if (m_nSelectedPay >= 0 && m_listDutchPay.GetItemCount() > 0) {
 
-		CString index = m_listDutchPay.GetItemText(m_nSelectedPay, 0);
+		CString index = m_listDutchPay.GetItemText(m_nSelectedPay, 0);	// settlement의 seq
 		int nIndex = _ttoi(index);
 
 		// settlement 삭제
@@ -403,7 +391,7 @@ void CDutchPayHelperDlg::OnClickedButtonDelete()
 			AfxMessageBox(_T("Error executing query: ") + error);
 		}
 
-		
+		// participants 삭제
 		query.Format(_T("DELETE FROM participants WHERE content_seq = %d"), _ttoi(strIndex));
 		CStringA participantsA(query);
 		cstr = participantsA;
@@ -412,6 +400,7 @@ void CDutchPayHelperDlg::OnClickedButtonDelete()
 			AfxMessageBox(_T("Error executing query: ") + error);
 		}
 
+		// 리스트에서 삭제
 		m_listDutchPay.DeleteItem(m_nSelectedPay);
 
 		UpdateData(FALSE);
@@ -435,10 +424,14 @@ void CDutchPayHelperDlg::OnLvnItemchangedListDutchpay(NMHDR* pNMHDR, LRESULT* pR
 void CDutchPayHelperDlg::OnClickedButtonViewDetails()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	// 선택된 셀이 있고, list에 아이템이 있을 때
 	if (m_nSelectedPay >= 0 && m_listDutchPay.GetItemCount() > 0) {
+		// 정산 자세히 보기 화면을 모달로 띄운다.
 		CViewSettlementDlg* pdlgView = new CViewSettlementDlg;
-		pdlgView->SetViewParentDlg(this);
-		pdlgView->DoModal();
+		pdlgView->SetViewParentDlg(this);	
+		if (pdlgView->DoModal() == IDOK) {
+			DisplayUnCompletedSettlements();	// m_listDutchpay 미정산 리스트 다시 출력
+		}
 	}
 	else {
 		MessageBox(_T("조회할 내용을 선택하지 않았습니다."), MB_OK);

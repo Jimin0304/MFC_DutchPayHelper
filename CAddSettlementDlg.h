@@ -22,42 +22,30 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnLbnSelchangeListCalculate();
 	CListBox m_listFriend;
-	afx_msg void OnLbnSelchangeListFriend();
 	int m_nAmount;
-	afx_msg void OnEnChangeEditAmount();
-	afx_msg void OnEnChangeEditDate();
 	CString m_strDate;
 	CComboBox m_cbUnit;
-	afx_msg void OnCbnSelchangeComboUnit();
 	CString m_strPlace;
-	afx_msg void OnEnChangeEditPlace();
 	afx_msg void OnBnClickedButtonCalculateAdd();
 	CString m_strFriend;
-	afx_msg void OnEnChangeEditFriend();
-	afx_msg void OnEnChangeEditCalculateName();
 	CString m_strCalculateName;
 	CString m_strAccountNum;
 	CString m_strGeneralAffairs;
 	CString m_strMemo;
 	CString m_strUnit;
-	afx_msg void OnEnChangeEditGeneralAffairs();
 	virtual BOOL OnInitDialog();
-	afx_msg void OnLvnItemchangedList3(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnLvnItemchangedListCalculate(NMHDR* pNMHDR, LRESULT* pResult);
 	CListCtrl m_listCalculate;
 	afx_msg void OnClickedButtonCalculateDelete();
 	int m_nSelectedItem;
 	CString ChangeListToString();
-	void UpdateFriendListBox(CString str);
 	afx_msg void OnClickedButtonFriendAdd();
 	afx_msg void OnClickedButtonEditFriends();
 	afx_msg void OnClickedButtonFriendDelete();
 	CDutchPayHelperDlg* m_pDlg;
 	void SetParentDlg(CDutchPayHelperDlg* dlg);
 	int m_nCountCal;
-	CListCtrl* GetListCtrlPointer();
 	afx_msg void OnBnClickedOk();
 	void InsertParticipants(int amount, CString nameList);
 	CComboBox m_cbSelectedUnit;

@@ -42,23 +42,11 @@ void CChangeUnitDlg::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CChangeUnitDlg, CDialogEx)
-	ON_EN_CHANGE(IDC_EDIT_UNIT, &CChangeUnitDlg::OnEnChangeEditUnit)
 	ON_BN_CLICKED(IDC_BUTTON_CHANGE, &CChangeUnitDlg::OnClickedButtonChange)
 END_MESSAGE_MAP()
 
 
 // CChangeUnitDlg 메시지 처리기
-
-
-void CChangeUnitDlg::OnEnChangeEditUnit()
-{
-	// TODO:  RICHEDIT 컨트롤인 경우, 이 컨트롤은
-	// CDialogEx::OnInitDialog() 함수를 재지정 
-	//하고 마스크에 OR 연산하여 설정된 ENM_CHANGE 플래그를 지정하여 CRichEditCtrl().SetEventMask()를 호출하지 않으면
-	// 이 알림 메시지를 보내지 않습니다.
-
-	// TODO:  여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
 
 
 void CChangeUnitDlg::SetAddDlg(CAddSettlementDlg* dlg)
@@ -90,6 +78,7 @@ BOOL CChangeUnitDlg::OnInitDialog()
 	}
 	m_dExchangeRate = 0;
 
+	// 단위 초기화
 	CString strPresentValue;
 	strPresentValue.Format(_T("%d"), m_nPresentValue);
 	m_strUnit = strPresentValue + m_strPresentUnit + _T(" -> ? ") + m_strChangeUnit;
@@ -122,6 +111,7 @@ void CChangeUnitDlg::OnClickedButtonChange()
 		else if (m_strPresentUnit == "엔" && m_strChangeUnit == "달러")
 			m_nChangeValue = m_nPresentValue * m_dExchangeRate;
 
+		// 단위 업데이트
 		CString strPresentValue, strChangeValue;
 		strPresentValue.Format(_T("%d"), m_nPresentValue);
 		strChangeValue.Format(_T("%d"), m_nChangeValue);

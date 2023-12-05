@@ -22,7 +22,6 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnEnChangeEditUnit();
 	CAddSettlementDlg* m_addDlg;
 	void SetAddDlg(CAddSettlementDlg* dlg);
 	CString m_strChangeUnit;

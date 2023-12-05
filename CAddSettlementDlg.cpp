@@ -34,7 +34,6 @@ CAddSettlementDlg::~CAddSettlementDlg()
 void CAddSettlementDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	//  DDX_Control(pDX, IDC_LIST_CALCULATE, m_listCalculate);
 	DDX_Control(pDX, IDC_LIST_FRIEND, m_listFriend);
 	DDX_Text(pDX, IDC_EDIT_AMOUNT, m_nAmount);
 	DDX_Text(pDX, IDC_EDIT_DATE, m_strDate);
@@ -51,16 +50,7 @@ void CAddSettlementDlg::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CAddSettlementDlg, CDialogEx)
-	ON_LBN_SELCHANGE(IDC_LIST_CALCULATE, &CAddSettlementDlg::OnLbnSelchangeListCalculate)
-	ON_LBN_SELCHANGE(IDC_LIST_FRIEND, &CAddSettlementDlg::OnLbnSelchangeListFriend)
-	ON_EN_CHANGE(IDC_EDIT_AMOUNT, &CAddSettlementDlg::OnEnChangeEditAmount)
-	ON_EN_CHANGE(IDC_EDIT_DATE, &CAddSettlementDlg::OnEnChangeEditDate)
-	ON_CBN_SELCHANGE(IDC_COMBO_UNIT, &CAddSettlementDlg::OnCbnSelchangeComboUnit)
-	ON_EN_CHANGE(IDC_EDIT_PLACE, &CAddSettlementDlg::OnEnChangeEditPlace)
 	ON_BN_CLICKED(IDC_BUTTON_CALCULATE_ADD, &CAddSettlementDlg::OnBnClickedButtonCalculateAdd)
-	ON_EN_CHANGE(IDC_EDIT_FRIEND, &CAddSettlementDlg::OnEnChangeEditFriend)
-	ON_EN_CHANGE(IDC_EDIT_CALCULATE_NAME, &CAddSettlementDlg::OnEnChangeEditCalculateName)
-	ON_EN_CHANGE(IDC_EDIT_GENERAL_AFFAIRS, &CAddSettlementDlg::OnEnChangeEditGeneralAffairs)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_CALCULATE, &CAddSettlementDlg::OnLvnItemchangedListCalculate)
 	ON_BN_CLICKED(IDC_BUTTON_CALCULATE_DELETE, &CAddSettlementDlg::OnClickedButtonCalculateDelete)
 	ON_BN_CLICKED(IDC_BUTTON_FRIEND_ADD, &CAddSettlementDlg::OnClickedButtonFriendAdd)
@@ -72,72 +62,19 @@ END_MESSAGE_MAP()
 
 // CAddSettlementDlg 메시지 처리기
 
-
-void CAddSettlementDlg::OnLbnSelchangeListCalculate()
-{
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
-void CAddSettlementDlg::OnLbnSelchangeListFriend()
-{
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
-void CAddSettlementDlg::OnEnChangeEditAmount()
-{
-	// TODO:  RICHEDIT 컨트롤인 경우, 이 컨트롤은
-	// CDialogEx::OnInitDialog() 함수를 재지정 
-	//하고 마스크에 OR 연산하여 설정된 ENM_CHANGE 플래그를 지정하여 CRichEditCtrl().SetEventMask()를 호출하지 않으면
-	// 이 알림 메시지를 보내지 않습니다.
-
-	// TODO:  여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
-void CAddSettlementDlg::OnEnChangeEditDate()
-{
-	// TODO:  RICHEDIT 컨트롤인 경우, 이 컨트롤은
-	// CDialogEx::OnInitDialog() 함수를 재지정 
-	//하고 마스크에 OR 연산하여 설정된 ENM_CHANGE 플래그를 지정하여 CRichEditCtrl().SetEventMask()를 호출하지 않으면
-	// 이 알림 메시지를 보내지 않습니다.
-
-	// TODO:  여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
-void CAddSettlementDlg::OnCbnSelchangeComboUnit()
-{
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
-void CAddSettlementDlg::OnEnChangeEditPlace()
-{
-	// TODO:  RICHEDIT 컨트롤인 경우, 이 컨트롤은
-	// CDialogEx::OnInitDialog() 함수를 재지정 
-	//하고 마스크에 OR 연산하여 설정된 ENM_CHANGE 플래그를 지정하여 CRichEditCtrl().SetEventMask()를 호출하지 않으면
-	// 이 알림 메시지를 보내지 않습니다.
-
-	// TODO:  여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
 void CAddSettlementDlg::OnBnClickedButtonCalculateAdd()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	int index = m_cbUnit.GetCurSel();
-
 	int nCount = m_listCalculate.GetItemCount();
 	CString strSettlement;
 	CString strAmount;
 
 	UpdateData(TRUE);
-	if (m_nAmount) {
-		strSettlement.Format(_T("%d차"), nCount + 1);
+	if (m_nAmount) {	// 금액에 입력했을 때만
+		strSettlement.Format(_T("%d차"), nCount + 1);	//차수 추가
 		strAmount.Format(_T("%d"), m_nAmount);
-		if (index == 0)
+		if (index == 0)	// 금액 뒤에 단위 추가
 			strAmount += _T("원");
 		else if (index == 1)
 			strAmount += _T("달러");
@@ -148,9 +85,11 @@ void CAddSettlementDlg::OnBnClickedButtonCalculateAdd()
 		m_listCalculate.SetItem(nCount, 1, LVIF_TEXT, strAmount, 0, 0, 0, 0);
 		m_listCalculate.SetItem(nCount, 2, LVIF_TEXT, m_strPlace, 0, 0, 0, 0);
 
+		// 금액, 장소 변수 초기화
 		m_nAmount = 0;
 		m_strPlace.Empty();
 
+		// 차수 총 개수 계속 업데이트
 		m_nCountCal = nCount + 1;
 
 		UpdateData(FALSE);
@@ -160,73 +99,32 @@ void CAddSettlementDlg::OnBnClickedButtonCalculateAdd()
 	}
 }
 
-
-void CAddSettlementDlg::OnEnChangeEditFriend()
-{
-	// TODO:  RICHEDIT 컨트롤인 경우, 이 컨트롤은
-	// CDialogEx::OnInitDialog() 함수를 재지정 
-	//하고 마스크에 OR 연산하여 설정된 ENM_CHANGE 플래그를 지정하여 CRichEditCtrl().SetEventMask()를 호출하지 않으면
-	// 이 알림 메시지를 보내지 않습니다.
-
-	// TODO:  여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
-void CAddSettlementDlg::OnEnChangeEditCalculateName()
-{
-	// TODO:  RICHEDIT 컨트롤인 경우, 이 컨트롤은
-	// CDialogEx::OnInitDialog() 함수를 재지정 
-	//하고 마스크에 OR 연산하여 설정된 ENM_CHANGE 플래그를 지정하여 CRichEditCtrl().SetEventMask()를 호출하지 않으면
-	// 이 알림 메시지를 보내지 않습니다.
-
-	// TODO:  여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
-void CAddSettlementDlg::OnEnChangeEditGeneralAffairs()
-{
-	// TODO:  RICHEDIT 컨트롤인 경우, 이 컨트롤은
-	// CDialogEx::OnInitDialog() 함수를 재지정 
-	//하고 마스크에 OR 연산하여 설정된 ENM_CHANGE 플래그를 지정하여 CRichEditCtrl().SetEventMask()를 호출하지 않으면
-	// 이 알림 메시지를 보내지 않습니다.
-
-	// TODO:  여기에 컨트롤 알림 처리기 코드를 추가합니다.
-}
-
-
 BOOL CAddSettlementDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
 	// TODO:  여기에 추가 초기화 작업을 추가합니다.
+	// m_listCalculate 초기화
 	m_listCalculate.InsertColumn(0, _T("차수"), LVCFMT_CENTER, 40);
 	m_listCalculate.InsertColumn(1, _T("금액"), LVCFMT_CENTER, 95);
 	m_listCalculate.InsertColumn(2, _T("장소"), LVCFMT_CENTER, 85);
 	m_listCalculate.InsertColumn(3, _T("참여자"), LVCFMT_CENTER, 120);
-
 	m_listCalculate.SetExtendedStyle(m_listCalculate.GetExtendedStyle() |
 		LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-	((CComboBox*)GetDlgItem(IDC_COMBO_UNIT))->SetCurSel(0);
-	((CComboBox*)GetDlgItem(IDC_COMBO_SELECTED_UNIT))->SetCurSel(0);
+
+	((CComboBox*)GetDlgItem(IDC_COMBO_UNIT))->SetCurSel(0);				// '원'으로 초기화
+	((CComboBox*)GetDlgItem(IDC_COMBO_SELECTED_UNIT))->SetCurSel(0);	// '원'으로 초기화
 	
+	// 상단에 날짜 제목
 	m_strDate = m_pDlg->m_timeDT.Format(L"%Y-%m-%d");
 	CFont g_editFont;
-	g_editFont.CreatePointFont(150, TEXT("굴림"));
+	g_editFont.CreatePointFont(150, TEXT("굴림"));	// 크기 및 폰트 변경
 	GetDlgItem(IDC_EDIT_DATE)->SetFont(&g_editFont);
-
 
 	UpdateData(FALSE);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
-}
-
-
-void CAddSettlementDlg::OnLvnItemchangedList3(NMHDR* pNMHDR, LRESULT* pResult)
-{
-	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	*pResult = 0;
 }
 
 
@@ -246,6 +144,7 @@ void CAddSettlementDlg::OnClickedButtonCalculateDelete()
 	if (m_nSelectedItem >= 0) {
 		m_listCalculate.DeleteItem(m_nSelectedItem);
 
+		// 중간에 삭제된 차수 앞으로 당겨서 채워주기
 		for (int i = m_nSelectedItem - 1; i < m_listCalculate.GetItemCount(); i++) {
 			CString strIndex;
 
@@ -253,6 +152,7 @@ void CAddSettlementDlg::OnClickedButtonCalculateDelete()
 			m_listCalculate.SetItemText(i, 0, strIndex);
 		}
 
+		// 차수 총 개수 하나 감소
 		m_nCountCal -= 1;
 
 		UpdateData(FALSE);
@@ -265,52 +165,22 @@ void CAddSettlementDlg::OnClickedButtonCalculateDelete()
 CString CAddSettlementDlg::ChangeListToString()
 {
 	// TODO: 여기에 구현 코드 추가.
-	CListBox* pListBox = (CListBox*)GetDlgItem(IDC_LIST_FRIEND);
-
-	int itemCount = pListBox->GetCount();
+	int itemCount = m_listFriend.GetCount();
 	CString resultString;
 
 	for (int i = 0; i < itemCount; ++i)
 	{
 		CString itemName;
-		pListBox->GetText(i, itemName);
-
-		if (!resultString.IsEmpty())
-		{
+		m_listFriend.GetText(i, itemName);
+		
+		// <이름>, <이름>, ... 형태로 만든다.
+		if (!resultString.IsEmpty()) {
 			resultString += _T(", ");
 		}
-
 		resultString += itemName;
 	}
 
 	return (resultString);
-}
-
-void CAddSettlementDlg::UpdateFriendListBox(CString str)
-{
-	// TODO: 여기에 구현 코드 추가.
-	CListBox* pListBox = (CListBox*)GetDlgItem(IDC_LIST_FRIEND); // IDC_YOUR_LIST_BOX는 여러분이 사용하는 실제 ID로 변경해야 합니다.
-
-	pListBox->ResetContent(); // ListBox를 초기화합니다.
-
-	// Tokenize를 사용하여 각 이름을 추출합니다.
-	CString delimiter = _T(", ");
-	int start = 0;
-	int end = str.Find(delimiter);
-
-	while (end != -1)
-	{
-		CString name = str.Mid(start, end - start);
-		pListBox->AddString(name);
-		start = end + delimiter.GetLength();
-		end = str.Find(delimiter, start);
-	}
-
-	// 마지막 이름을 ListBox에 추가합니다.
-	CString last_name = str.Mid(start);
-	pListBox->AddString(last_name);
-
-	UpdateData(FALSE);
 }
 
 
@@ -318,10 +188,10 @@ void CAddSettlementDlg::OnClickedButtonFriendAdd()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	UpdateData(TRUE);
-	if (m_strFriend.IsEmpty() == FALSE)
+	if (m_strFriend.IsEmpty() == FALSE)		// 이름 입력이 안되어있을 때
 	{
 		m_listFriend.AddString(m_strFriend);
-		m_strFriend.Empty();
+		m_strFriend.Empty();	// 초기화
 	}
 	else
 	{
@@ -338,11 +208,11 @@ void CAddSettlementDlg::OnClickedButtonEditFriends()
 	int nCount;
 	CString strName;
 
-	if (m_nSelectedItem >= 0) {
+	if (m_nSelectedItem >= 0) {		// 참여자를 편집할 정산을 선택했을 때
 		nCount = m_listFriend.GetCount();
 
 		if (nCount) {
-			strName = ChangeListToString();
+			strName = ChangeListToString();	// m_listFriend의 값들을 string 형식으로 변환
 			m_listCalculate.SetItem(m_nSelectedItem, 3, LVIF_TEXT, strName, 0, 0, 0, 0);
 		}
 		else {
@@ -373,13 +243,8 @@ void CAddSettlementDlg::OnClickedButtonFriendDelete()
 void CAddSettlementDlg::SetParentDlg(CDutchPayHelperDlg* dlg)
 {
 	// TODO: 여기에 구현 코드 추가.
+	// 부모 다이얼로그인 CDutchPayHelperDlg 저장
 	m_pDlg = dlg;
-}
-
-CListCtrl* CAddSettlementDlg::GetListCtrlPointer()
-{
-	// TODO: 여기에 구현 코드 추가.
-	return &m_listCalculate;;
 }
 
 
@@ -391,10 +256,11 @@ void CAddSettlementDlg::OnBnClickedOk()
 	{
 		CString settlement;
 
-		// settlement db 추가
+		// settlement table에 데이터 추가
 		settlement = _T("INSERT INTO settlement (settlement_date, settlement_name, general_affairs, account_num, memo, is_completed, amount_unit) VALUES (\'");
 		settlement += m_strDate + _T("\'");
 
+		// 정산 정보는 있어도 되고, 없어도 됨. 없으면 NULL로 입력
 		if (m_strCalculateName.IsEmpty()) { settlement += _T(", NULL"); }
 		else { settlement += _T(", \'") + m_strCalculateName + _T("\'"); }
 
@@ -407,8 +273,10 @@ void CAddSettlementDlg::OnBnClickedOk()
 		if (m_strMemo.IsEmpty()) { settlement += _T(", NULL"); }
 		else { settlement += _T(", \'") + m_strMemo + _T("\'"); }
 
+		// 정산 미완료 상태
 		settlement += _T(", 0, ");
 
+		// 계산되길 원하는 화폐 단위 저장
 		if (m_cbSelectedUnit.GetCurSel() == 0)
 		{
 			settlement += _T("'원')");
@@ -427,15 +295,11 @@ void CAddSettlementDlg::OnBnClickedOk()
 		const char* cstr = cstrA;
 
 		if (mysql_query(&Connect, cstr) != 0) {
-			// 쿼리 실행이 실패함
-			// 에러 처리 코드 추가
 			CString error(mysql_error(&Connect));
-			// 에러 메시지를 출력하거나 로그에 기록
-			AfxMessageBox(_T("Error executing query: ") + settlement);
 			AfxMessageBox(_T("Error executing query: ") + error);
 		}
 
-		// content db 추가
+		// content table에 데이터 추가
 		CString tmp;
 
 		mysql_query(&Connect, "select MAX(seq) from settlement");
@@ -454,38 +318,43 @@ void CAddSettlementDlg::OnBnClickedOk()
 
 			degree = m_listCalculate.GetItemText(i, 0);
 			strAmount = m_listCalculate.GetItemText(i, 1);
-			if (strAmount.Find(_T("원")) != -1) {
-				unitIndex = 0;
-				unitLen = 1;
+			if (strAmount.Find(_T("원")) != -1) {	// content의 화폐 단위가 '원'일 때
+				unitIndex = 0;		// m_cbSelectedUnit와 비교하기 위해 unitIndex 지정
+				unitLen = 1;		// 단위 문자열 길이
 			}
-			else if (strAmount.Find(_T("달러")) != -1) {	// unit이 달러일 때
+			else if (strAmount.Find(_T("달러")) != -1) {	// content의 화폐 단위가 '달러'일 때
 				unitIndex = 1;
 				unitLen = 2;
 			}
-			else if (strAmount.Find(_T("엔")) != -1) {
+			else if (strAmount.Find(_T("엔")) != -1) {	// content의 화폐 단위가 '엔'일 때
 				unitIndex = 2;
 				unitLen = 1;
 			}
 
+			// 금액만 추출하기 위하여 뒤에 화폐 단위 제거
 			m_nAmount = _ttoi(strAmount.Left(strAmount.GetLength() - unitLen));
 
+			// 계산하기로 지정한 화폐 단위와 content 화폐 단위 다를 때
 			if (m_cbSelectedUnit.GetCurSel() != unitIndex) {
-				m_cbSelectedUnit.GetLBText(unitIndex, m_strPresnetUnit);
+				m_cbSelectedUnit.GetLBText(unitIndex, m_strPresnetUnit);	// m_strPresentUnit에 unitIndex번의 데이터 값 저장
+				
+				// 환율 계산을 하기 위해 CChangeUnitDlg 모달 띄움
 				CChangeUnitDlg* pdlgUnit = new CChangeUnitDlg;
 				pdlgUnit->SetAddDlg(this);
 				if (pdlgUnit->DoModal() == IDOK) {
-					m_nAmount = pdlgUnit->m_nChangeValue;
+					m_nAmount = pdlgUnit->m_nChangeValue;	// 환율 적용된 값 가져옴
 				}
-				pdlgUnit->m_addDlg = nullptr;
+				pdlgUnit->m_addDlg = nullptr;	// 부모를 헷갈리지 않기 위해 nullptr (view와 같이 사용하기 때문)
 			}
 
+			// 장소
 			place = m_listCalculate.GetItemText(i, 2);
-			if (place.IsEmpty()) {
+			if (place.IsEmpty())
 				place = _T("NULL");
-			}
-			else {
+			else
 				place = _T("'") + place + _T("'");
-			}
+
+			// 참여자 리스트
 			nameList = m_listCalculate.GetItemText(i, 3);
 
 			tmp.Format(_T("INSERT INTO content (settlement_seq, degree, amount, place) VALUES (%d, '%s', %ld, %s)"),
@@ -495,20 +364,16 @@ void CAddSettlementDlg::OnBnClickedOk()
 			const char* content = contentA;
 
 			if (mysql_query(&Connect, content) != 0) {
-				// 쿼리 실행이 실패함
-				// 에러 처리 코드 추가
 				CString error(mysql_error(&Connect));
-				// 에러 메시지를 출력하거나 로그에 기록
 				AfxMessageBox(_T("Error executing query: ") + error);
 
 				// 트랜잭션 롤백
 				mysql_rollback(&Connect);
 			}
 			else {
-				// 쿼리 실행이 성공함
 				// 트랜잭션 커밋
 				mysql_commit(&Connect);
-				InsertParticipants(m_nAmount, nameList);
+				InsertParticipants(m_nAmount, nameList);	// participants table에 참여자 리스트 삽입
 			}
 		}
 	}
@@ -524,8 +389,8 @@ void CAddSettlementDlg::OnBnClickedOk()
 void CAddSettlementDlg::InsertParticipants(int amount, CString nameList)
 {
 	// TODO: 여기에 구현 코드 추가.
-	// participants db
-	mysql_query(&Connect, "select MAX(content_seq) from content");
+	// participants table에 데이터 추가
+	mysql_query(&Connect, "select MAX(content_seq) from content");	// 제일 최근에 추가된 content seq 값 가져옴
 	sql_result = mysql_store_result(&Connect);
 	if (sql_result == NULL)
 		AfxMessageBox(_T("조회된 content가 없습니다."));
@@ -535,9 +400,10 @@ void CAddSettlementDlg::InsertParticipants(int amount, CString nameList)
 	mysql_free_result(sql_result);
 
 	CString token;
-	int pos = 0;
+	int pos = 0;	// 사람 수
 
-	while (AfxExtractSubString(token, nameList, pos, ','))
+	// <이름>, <이름>, .. 형식의 string을 parsing해서 데이터 삽입
+	while (AfxExtractSubString(token, nameList, pos, ','))	// ','을 구분자로 데이터 추출
 	{
 		// 좌우 공백 제거
 		token.TrimLeft();
@@ -545,7 +411,6 @@ void CAddSettlementDlg::InsertParticipants(int amount, CString nameList)
 
 		int cnt = 0;
 
-		// 결과 DB에 추가
 		if (!token.IsEmpty()) {
 			CString participant;
 
@@ -556,18 +421,11 @@ void CAddSettlementDlg::InsertParticipants(int amount, CString nameList)
 			const char* content = contentA;
 
 			if (mysql_query(&Connect, content) != 0) {
-				// 쿼리 실행이 실패함
-				// 에러 처리 코드 추가
 				CString error(mysql_error(&Connect));
-				// 에러 메시지를 출력하거나 로그에 기록
 				AfxMessageBox(_T("Error executing query: ") + error);
-
-				// 트랜잭션 롤백
 				mysql_rollback(&Connect);
 			}
 			else {
-				// 쿼리 실행이 성공함
-				// 트랜잭션 커밋
 				mysql_commit(&Connect);
 			}
 		}
@@ -576,7 +434,7 @@ void CAddSettlementDlg::InsertParticipants(int amount, CString nameList)
 		pos++;
 	}
 
-	// 각 차수 당 내야할 돈 계산하여 db에 저장
+	// 각 차수 당 내야할 돈 계산하여 저장
 	int pay = amount / pos;
 	CString moneyToPay;
 
@@ -586,18 +444,11 @@ void CAddSettlementDlg::InsertParticipants(int amount, CString nameList)
 	const char* payA = moneyToPayA;
 
 	if (mysql_query(&Connect, payA) != 0) {
-		// 쿼리 실행이 실패함
-		// 에러 처리 코드 추가
 		CString error(mysql_error(&Connect));
-		// 에러 메시지를 출력하거나 로그에 기록
 		AfxMessageBox(_T("Error executing query: ") + error);
-
-		// 트랜잭션 롤백
 		mysql_rollback(&Connect);
 	}
 	else {
-		// 쿼리 실행이 성공함
-		// 트랜잭션 커밋
 		mysql_commit(&Connect);
 	}
 }
